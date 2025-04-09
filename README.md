@@ -1,12 +1,12 @@
-# generate-loading-screen
+# generate-manifest-action
 
-[![GitHub Super-Linter](https://github.com/knoxfighter/generate-loading-screen/actions/workflows/linter.yml/badge.svg)](https://github.com/knoxfighter/generate-loading-screen/actions/workflows/linter.yml)
-[![CI](https://github.com/knoxfighter/generate-loading-screen/actions/workflows/ci.yml/badge.svg)](https://github.com/knoxfighter/generate-loading-screen/actions/workflows/ci.yml)
-[![Check dist/](https://github.com/knoxfighter/generate-loading-screen/actions/workflows/check-dist.yml/badge.svg)](https://github.com/knoxfighter/generate-loading-screen/actions/workflows/check-dist.yml)
-[![CodeQL](https://github.com/knoxfighter/generate-loading-screen/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/knoxfighter/generate-loading-screen/actions/workflows/codeql-analysis.yml)
+[![GitHub Super-Linter](https://github.com/gw2load/generate-manifest-action/actions/workflows/linter.yml/badge.svg)](https://github.com/gw2load/generate-manifest-action/actions/workflows/linter.yml)
+[![CI](https://github.com/gw2load/generate-manifest-action/actions/workflows/ci.yml/badge.svg)](https://github.com/gw2load/generate-manifest-action/actions/workflows/ci.yml)
+[![Check dist/](https://github.com/gw2load/generate-manifest-action/actions/workflows/check-dist.yml/badge.svg)](https://github.com/gw2load/generate-manifest-action/actions/workflows/check-dist.yml)
+[![CodeQL](https://github.com/gw2load/generate-manifest-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/gw2load/generate-manifest-action/actions/workflows/codeql-analysis.yml)
 
 This action is used to generate the addon manifest for
-[knoxfighter/addon-repo](https://github.com/knoxfighter/addon-repo).
+[gw2load/manifest](https://github.com/gw2load/manifest).
 
 ## Contribute
 
