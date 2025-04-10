@@ -4,7 +4,7 @@ import { tmpdir } from 'os'
 import path from 'node:path'
 import * as fs from 'node:fs'
 import { exec } from 'child_process'
-import { Addon, Release, Version } from './schema'
+import { Addon, Release, Version } from './schema.js'
 
 export function isGreater(a: Version, b: Version): boolean {
   for (let i = 0; i < 4; i++) {

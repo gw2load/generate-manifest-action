@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 /**
  * Unit tests for the action's main functionality, src/main.ts
  *
@@ -8,70 +6,64 @@
  * variables following the pattern `INPUT_<INPUT_NAME>`.
  */
 
-import * as core from '@actions/core'
-import * as main from '../src/main'
+import { jest } from '@jest/globals'
+import * as core from '../__fixtures__/core.js'
 import path from 'node:path'
 
 // Mock the GitHub Actions core library
-let debugMock: jest.SpiedFunction<typeof core.debug>
-let errorMock: jest.SpiedFunction<typeof core.error>
-let warningMock: jest.SpiedFunction<typeof core.warning>
-let getInputMock: jest.SpiedFunction<typeof core.getInput>
-let setFailedMock: jest.SpiedFunction<typeof core.setFailed>
-let setOutputMock: jest.SpiedFunction<typeof core.setOutput>
+jest.unstable_mockModule('@actions/core', () => core)
+
+// get test directory
+const dirname = path.resolve('./__tests__/')
+
+// import main dynamically to ensure mocks are setup first
+const main = await import('../src/main.js')
 
 describe('action', () => {
-  beforeEach(() => {
-    jest.clearAllMocks()
-
-    debugMock = jest.spyOn(core, 'debug').mockImplementation()
-    errorMock = jest.spyOn(core, 'error').mockImplementation()
-    warningMock = jest.spyOn(core, 'warning').mockImplementation()
-    getInputMock = jest.spyOn(core, 'getInput')
-    setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation()
-    setOutputMock = jest.spyOn(core, 'setOutput').mockImplementation()
+  afterEach(() => {
+    jest.resetAllMocks()
   })
 
   it('local test', async () => {
     const manifest = await main.generateManifest({
-      addonsPath: path.resolve(__dirname, 'addons'),
+      addonsPath: path.resolve(dirname, 'addons'),
       manifestPath: undefined
     })
 
     expect(manifest.data.addons).toHaveLength(4)
-    expect(setFailedMock).not.toHaveBeenCalled()
+    expect(core.setFailed).not.toHaveBeenCalled()
   }, 20_000)
 
   it('should merge (legacy array) manifest', async () => {
     const manifest = await main.generateManifest({
-      addonsPath: path.resolve(__dirname, 'empty'),
-      manifestPath: path.resolve(__dirname, 'manifest-array.json')
+      addonsPath: path.resolve(dirname, 'empty'),
+      manifestPath: path.resolve(dirname, 'manifest-array.json')
     })
 
     expect(manifest.data.addons).toHaveLength(0)
-    expect(warningMock).toHaveBeenCalledWith(
+    expect(core.warning).toHaveBeenCalledWith(
       'Addon gw2radial was removed from manifest!'
     )
-    expect(setFailedMock).not.toHaveBeenCalled()
+    expect(core.setFailed).not.toHaveBeenCalled()
   })
 
   it('should merge manifest', async () => {
     const manifest = await main.generateManifest({
-      addonsPath: path.resolve(__dirname, 'empty'),
-      manifestPath: path.resolve(__dirname, 'manifest.json')
+      addonsPath: path.resolve(dirname, 'empty'),
+      manifestPath: path.resolve(dirname, 'manifest.json')
     })
 
     expect(manifest.data.addons).toHaveLength(0)
-    expect(warningMock).toHaveBeenCalledWith(
+    expect(core.warning).toHaveBeenCalledWith(
       'Addon gw2radial was removed from manifest!'
     )
-    expect(setFailedMock).not.toHaveBeenCalled()
+    expect(core.setFailed).not.toHaveBeenCalled()
   })
 
   it('should fail if manifest is invalid', async () => {
     const manifestPromise = main.generateManifest({
-      addonsPath: path.resolve(__dirname, 'empty'),
-      manifestPath: path.resolve(__dirname, 'invalid.json')
+      addonsPath: path.resolve(dirname, 'empty'),
+      manifestPath: path.resolve(dirname, 'invalid.json')
     })
 
     await expect(manifestPromise).rejects.toHaveProperty(
