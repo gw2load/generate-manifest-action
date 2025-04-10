@@ -2,9 +2,9 @@ import {
   createReleaseFromArchive,
   createReleaseFromDll,
   isGreater
-} from './addon'
-import { addAddonName } from './main'
-import { Addon, Release, StandaloneHost } from './schema'
+} from './addon.js'
+import { addAddonName } from './main.js'
+import { Addon, Release, StandaloneHost } from './schema.js'
 
 export async function updateStandalone(
   addon: Addon,
