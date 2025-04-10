@@ -38693,8 +38693,8 @@ function isGreater(a, b) {
 async function createReleaseFromArchive(addon, fileBuffer, id, downloadUrl) {
     const unzipped = (0, fflate_1.unzipSync)(new Uint8Array(fileBuffer));
     const files = Object.keys(unzipped)
-        .filter(value => value.endsWith('.dll'))
-        .map(value => new File([unzipped[value]], value));
+        .filter((value) => value.endsWith('.dll'))
+        .map((value) => new File([unzipped[value]], value));
     for (const file of files) {
         // save file to tmp
         const filePath = await saveToTmp(file);
@@ -38720,7 +38720,7 @@ async function saveToTmp(file) {
 }
 function checkDllExports(filepath) {
     let result = false;
-    (0, child_process_1.exec)(`./winedump -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`, error => {
+    (0, child_process_1.exec)(`./winedump -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`, (error) => {
         result = error !== undefined;
     });
     return result;
@@ -38750,7 +38750,7 @@ function createReleaseFromDll(addon, fileBuffer, id, downloadUrl) {
         (fixedFileInfo.getStruct().dwFileVersionLS >> 16) & 0xffff,
         fixedFileInfo.getStruct().dwFileVersionLS & 0xffff
     ];
-    if (addonVersion.every(value => value === 0)) {
+    if (addonVersion.every((value) => value === 0)) {
         addonVersion = [
             (fixedFileInfo.getStruct().dwProductVersionMS >> 16) & 0xffff,
             fixedFileInfo.getStruct().dwProductVersionMS & 0xffff,
@@ -38758,7 +38758,7 @@ function createReleaseFromDll(addon, fileBuffer, id, downloadUrl) {
             fixedFileInfo.getStruct().dwProductVersionLS & 0xffff
         ];
     }
-    if (addonVersion.every(value => value === 0)) {
+    if (addonVersion.every((value) => value === 0)) {
         throw new Error(`no addonVersion found for addon ${addon.package.name}`);
     }
     // read version string
@@ -39077,7 +39077,7 @@ async function generateManifest({ addonsPath, manifestPath }) {
     if (manifestPath && fs.existsSync(manifestPath)) {
         const existingAddons = await readManifest(manifestPath);
         for (const existingAddon of existingAddons) {
-            const found = addons.find(value => value.package.id === existingAddon.package.id);
+            const found = addons.find((value) => value.package.id === existingAddon.package.id);
             if (!found) {
                 core.warning(`Addon ${existingAddon.package.id} was removed from manifest!`);
                 continue;
