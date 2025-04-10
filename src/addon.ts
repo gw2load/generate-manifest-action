@@ -23,8 +23,8 @@ export async function createReleaseFromArchive(
 ): Promise<Release | undefined> {
   const unzipped = unzipSync(new Uint8Array(fileBuffer))
   const files = Object.keys(unzipped)
-    .filter(value => value.endsWith('.dll'))
-    .map(value => new File([unzipped[value]], value))
+    .filter((value) => value.endsWith('.dll'))
+    .map((value) => new File([unzipped[value]], value))
 
   for (const file of files) {
     // save file to tmp
@@ -60,7 +60,7 @@ function checkDllExports(filepath: string): boolean {
   let result = false
   exec(
     `./winedump -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`,
-    error => {
+    (error) => {
       result = error !== undefined
     }
   )
@@ -104,7 +104,7 @@ export function createReleaseFromDll(
     (fixedFileInfo.getStruct().dwFileVersionLS >> 16) & 0xffff,
     fixedFileInfo.getStruct().dwFileVersionLS & 0xffff
   ]
-  if (addonVersion.every(value => value === 0)) {
+  if (addonVersion.every((value) => value === 0)) {
     addonVersion = [
       (fixedFileInfo.getStruct().dwProductVersionMS >> 16) & 0xffff,
       fixedFileInfo.getStruct().dwProductVersionMS & 0xffff,
@@ -112,7 +112,7 @@ export function createReleaseFromDll(
       fixedFileInfo.getStruct().dwProductVersionLS & 0xffff
     ]
   }
-  if (addonVersion.every(value => value === 0)) {
+  if (addonVersion.every((value) => value === 0)) {
     throw new Error(`no addonVersion found for addon ${addon.package.name}`)
   }
 
