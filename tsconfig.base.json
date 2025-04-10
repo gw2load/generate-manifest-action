@@ -12,7 +12,7 @@
     "moduleResolution": "NodeNext",
     "newLine": "lf",
     "noImplicitAny": true,
-    // "noUnusedLocals": true,
+    "noUnusedLocals": true,
     "noUnusedParameters": false,
     "pretty": true,
     "resolveJsonModule": true,
