@@ -1882,6 +1882,7 @@ class Context {
         this.action = process.env.GITHUB_ACTION;
         this.actor = process.env.GITHUB_ACTOR;
         this.job = process.env.GITHUB_JOB;
+        this.runAttempt = parseInt(process.env.GITHUB_RUN_ATTEMPT, 10);
         this.runNumber = parseInt(process.env.GITHUB_RUN_NUMBER, 10);
         this.runId = parseInt(process.env.GITHUB_RUN_ID, 10);
         this.apiUrl = (_a = process.env.GITHUB_API_URL) !== null && _a !== void 0 ? _a : `https://api.github.com`;
@@ -3727,7 +3728,7 @@ module.exports = __toCommonJS(dist_src_exports);
 var import_universal_user_agent = __nccwpck_require__(3843);
 
 // pkg/dist-src/version.js
-var VERSION = "9.0.5";
+var VERSION = "9.0.6";
 
 // pkg/dist-src/defaults.js
 var userAgent = `octokit-endpoint.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`;
@@ -3832,9 +3833,9 @@ function addQueryParameters(url, parameters) {
 }
 
 // pkg/dist-src/util/extract-url-variable-names.js
-var urlVariableRegex = /\{[^}]+\}/g;
+var urlVariableRegex = /\{[^{}}]+\}/g;
 function removeNonChars(variableName) {
-  return variableName.replace(/^\W+|\W+$/g, "").split(/,/);
+  return variableName.replace(/(?:^\W+)|(?:(?<!\W)\W+$)/g, "").split(/,/);
 }
 function extractUrlVariableNames(url) {
   const matches = url.match(urlVariableRegex);
@@ -4020,7 +4021,7 @@ function parse(options) {
     }
     if (url.endsWith("/graphql")) {
       if (options.mediaType.previews?.length) {
-        const previewsFromAcceptHeader = headers.accept.match(/[\w-]+(?=-preview)/g) || [];
+        const previewsFromAcceptHeader = headers.accept.match(/(?<![\w-])[\w-]+(?=-preview)/g) || [];
         headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
           const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
           return `application/vnd.github.${preview}-preview${format}`;
@@ -4269,7 +4270,7 @@ __export(dist_src_exports, {
 module.exports = __toCommonJS(dist_src_exports);
 
 // pkg/dist-src/version.js
-var VERSION = "9.2.1";
+var VERSION = "9.2.2";
 
 // pkg/dist-src/normalize-paginated-list-response.js
 function normalizePaginatedListResponse(response) {
@@ -4317,7 +4318,7 @@ function iterator(octokit, route, parameters) {
           const response = await requestMethod({ method, url, headers });
           const normalizedResponse = normalizePaginatedListResponse(response);
           url = ((normalizedResponse.headers.link || "").match(
-            /<([^>]+)>;\s*rel="next"/
+            /<([^<>]+)>;\s*rel="next"/
           ) || [])[1];
           return { value: normalizedResponse };
         } catch (error) {
@@ -6869,7 +6870,7 @@ var RequestError = class extends Error {
     if (options.request.headers.authorization) {
       requestCopy.headers = Object.assign({}, options.request.headers, {
         authorization: options.request.headers.authorization.replace(
-          / .*$/,
+          /(?<! ) .*$/,
           " [REDACTED]"
         )
       });
@@ -6937,7 +6938,7 @@ var import_endpoint = __nccwpck_require__(4471);
 var import_universal_user_agent = __nccwpck_require__(3843);
 
 // pkg/dist-src/version.js
-var VERSION = "8.4.0";
+var VERSION = "8.4.1";
 
 // pkg/dist-src/is-plain-object.js
 function isPlainObject(value) {
@@ -6996,7 +6997,7 @@ function fetchWrapper(requestOptions) {
       headers[keyAndValue[0]] = keyAndValue[1];
     }
     if ("deprecation" in headers) {
-      const matches = headers.link && headers.link.match(/<([^>]+)>; rel="deprecation"/);
+      const matches = headers.link && headers.link.match(/<([^<>]+)>; rel="deprecation"/);
       const deprecationLink = matches && matches.pop();
       log.warn(
         `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${headers.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
@@ -21411,7 +21412,7 @@ module.exports = {
 
 
 const { parseSetCookie } = __nccwpck_require__(8915)
-const { stringify, getHeadersList } = __nccwpck_require__(3834)
+const { stringify } = __nccwpck_require__(3834)
 const { webidl } = __nccwpck_require__(4222)
 const { Headers } = __nccwpck_require__(6349)
 
@@ -21487,14 +21488,13 @@ function getSetCookies (headers) {
 
   webidl.brandCheck(headers, Headers, { strict: false })
 
-  const cookies = getHeadersList(headers).cookies
+  const cookies = headers.getSetCookie()
 
   if (!cookies) {
     return []
   }
 
-  // In older versions of undici, cookies is a list of name:value.
-  return cookies.map((pair) => parseSetCookie(Array.isArray(pair) ? pair[1] : pair))
+  return cookies.map((pair) => parseSetCookie(pair))
 }
 
 /**
@@ -21922,14 +21922,15 @@ module.exports = {
 /***/ }),
 
 /***/ 3834:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module) => {
 
 "use strict";
 
 
-const assert = __nccwpck_require__(2613)
-const { kHeadersList } = __nccwpck_require__(6443)
-
+/**
+ * @param {string} value
+ * @returns {boolean}
+ */
 function isCTLExcludingHtab (value) {
   if (value.length === 0) {
     return false
@@ -22190,31 +22191,13 @@ function stringify (cookie) {
   return out.join('; ')
 }
 
-let kHeadersListNode
-
-function getHeadersList (headers) {
-  if (headers[kHeadersList]) {
-    return headers[kHeadersList]
-  }
-
-  if (!kHeadersListNode) {
-    kHeadersListNode = Object.getOwnPropertySymbols(headers).find(
-      (symbol) => symbol.description === 'headers list'
-    )
-
-    assert(kHeadersListNode, 'Headers cannot be parsed')
-  }
-
-  const headersList = headers[kHeadersListNode]
-  assert(headersList)
-
-  return headersList
-}
-
 module.exports = {
   isCTLExcludingHtab,
-  stringify,
-  getHeadersList
+  validateCookieName,
+  validateCookiePath,
+  validateCookieValue,
+  toIMFDate,
+  stringify
 }
 
 
@@ -24143,6 +24126,14 @@ const { isUint8Array, isArrayBuffer } = __nccwpck_require__(8253)
 const { File: UndiciFile } = __nccwpck_require__(3041)
 const { parseMIMEType, serializeAMimeType } = __nccwpck_require__(4322)
 
+let random
+try {
+  const crypto = __nccwpck_require__(7598)
+  random = (max) => crypto.randomInt(0, max)
+} catch {
+  random = (max) => Math.floor(Math.random(max))
+}
+
 let ReadableStream = globalThis.ReadableStream
 
 /** @type {globalThis['File']} */
@@ -24228,7 +24219,7 @@ function extractBody (object, keepalive = false) {
     // Set source to a copy of the bytes held by object.
     source = new Uint8Array(object.buffer.slice(object.byteOffset, object.byteOffset + object.byteLength))
   } else if (util.isFormDataLike(object)) {
-    const boundary = `----formdata-undici-0${`${Math.floor(Math.random() * 1e11)}`.padStart(11, '0')}`
+    const boundary = `----formdata-undici-0${`${random(1e11)}`.padStart(11, '0')}`
     const prefix = `--${boundary}\r\nContent-Disposition: form-data`
 
     /*! formdata-polyfill. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> */
@@ -26210,6 +26201,7 @@ const {
   isValidHeaderName,
   isValidHeaderValue
 } = __nccwpck_require__(5523)
+const util = __nccwpck_require__(9023)
 const { webidl } = __nccwpck_require__(4222)
 const assert = __nccwpck_require__(2613)
 
@@ -26763,6 +26755,9 @@ Object.defineProperties(Headers.prototype, {
   [Symbol.toStringTag]: {
     value: 'Headers',
     configurable: true
+  },
+  [util.inspect.custom]: {
+    enumerable: false
   }
 })
 
@@ -35939,6 +35934,20 @@ class Pool extends PoolBase {
       ? { ...options.interceptors }
       : undefined
     this[kFactory] = factory
+
+    this.on('connectionError', (origin, targets, error) => {
+      // If a connection error occurs, we remove the client from the pool,
+      // and emit a connectionError event. They will not be re-used.
+      // Fixes https://github.com/nodejs/undici/issues/3895
+      for (const target of targets) {
+        // Do not use kRemoveClient here, as it will close the client,
+        // but the client cannot be closed in this state.
+        const idx = this[kClients].indexOf(target)
+        if (idx !== -1) {
+          this[kClients].splice(idx, 1)
+        }
+      }
+    })
   }
 
   [kGetDispatcher] () {
@@ -38343,8 +38352,8 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // lib/index.ts
-var lib_exports = {};
-__export(lib_exports, {
+var index_exports = {};
+__export(index_exports, {
   ValidationError: () => ValidationError,
   createMessageBuilder: () => createMessageBuilder,
   errorMap: () => errorMap,
@@ -38356,7 +38365,7 @@ __export(lib_exports, {
   isZodErrorLike: () => isZodErrorLike,
   toValidationError: () => toValidationError
 });
-module.exports = __toCommonJS(lib_exports);
+module.exports = __toCommonJS(index_exports);
 
 // lib/isZodErrorLike.ts
 function isZodErrorLike(err) {
@@ -39727,15 +39736,15 @@ const base64urlRegex = /^([0-9a-zA-Z-_]{4})*(([0-9a-zA-Z-_]{2}(==)?)|([0-9a-zA-Z
 const dateRegexSource = `((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-((0[13578]|1[02])-(0[1-9]|[12]\\d|3[01])|(0[469]|11)-(0[1-9]|[12]\\d|30)|(02)-(0[1-9]|1\\d|2[0-8])))`;
 const dateRegex = new RegExp(`^${dateRegexSource}$`);
 function timeRegexSource(args) {
-    // let regex = `\\d{2}:\\d{2}:\\d{2}`;
-    let regex = `([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d`;
+    let secondsRegexSource = `[0-5]\\d`;
     if (args.precision) {
-        regex = `${regex}\\.\\d{${args.precision}}`;
+        secondsRegexSource = `${secondsRegexSource}\\.\\d{${args.precision}}`;
     }
     else if (args.precision == null) {
-        regex = `${regex}(\\.\\d+)?`;
+        secondsRegexSource = `${secondsRegexSource}(\\.\\d+)?`;
     }
-    return regex;
+    const secondsQuantifier = args.precision ? "+" : "?"; // require seconds if precision is nonzero
+    return `([01]\\d|2[0-3]):[0-5]\\d(:${secondsRegexSource})${secondsQuantifier}`;
 }
 function timeRegex(args) {
     return new RegExp(`^${timeRegexSource(args)}$`);
@@ -43883,6 +43892,14 @@ module.exports = require("https");
 
 "use strict";
 module.exports = require("net");
+
+/***/ }),
+
+/***/ 7598:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:crypto");
 
 /***/ }),
 
