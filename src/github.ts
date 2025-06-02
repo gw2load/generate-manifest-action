@@ -2,12 +2,12 @@ import {
   createReleaseFromArchive,
   createReleaseFromDll,
   isGreater
-} from './addon'
+} from './addon.js'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
-import { addAddonName } from './main'
+import { addAddonName } from './main.js'
 import type { GetResponseDataTypeFromEndpointMethod } from '@octokit/types'
-import { GithubHost, Addon, Release } from './schema'
+import { GithubHost, Addon, Release } from './schema.js'
 
 type GetLatestReleaseType = GetResponseDataTypeFromEndpointMethod<
   typeof octokit.rest.repos.getLatestRelease
