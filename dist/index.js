@@ -38318,7 +38318,7 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 1665:
+/***/ 4042:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
@@ -38351,7 +38351,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// lib/index.ts
+// lib/v3/index.ts
 var index_exports = {};
 __export(index_exports, {
   ValidationError: () => ValidationError,
@@ -38367,12 +38367,12 @@ __export(index_exports, {
 });
 module.exports = __toCommonJS(index_exports);
 
-// lib/isZodErrorLike.ts
+// lib/v3/isZodErrorLike.ts
 function isZodErrorLike(err) {
   return err instanceof Error && err.name === "ZodError" && "issues" in err && Array.isArray(err.issues);
 }
 
-// lib/ValidationError.ts
+// lib/v3/ValidationError.ts
 var ValidationError = class extends Error {
   name;
   details;
@@ -38395,20 +38395,20 @@ function getIssuesFromErrorOptions(options) {
   return [];
 }
 
-// lib/isValidationError.ts
+// lib/v3/isValidationError.ts
 function isValidationError(err) {
   return err instanceof ValidationError;
 }
 
-// lib/isValidationErrorLike.ts
+// lib/v3/isValidationErrorLike.ts
 function isValidationErrorLike(err) {
   return err instanceof Error && err.name === "ZodValidationError";
 }
 
-// lib/fromZodIssue.ts
+// lib/v3/fromZodIssue.ts
 var zod2 = __toESM(__nccwpck_require__(2046));
 
-// lib/MessageBuilder.ts
+// lib/v3/MessageBuilder.ts
 var zod = __toESM(__nccwpck_require__(2046));
 
 // lib/utils/NonEmptyArray.ts
@@ -38416,38 +38416,50 @@ function isNonEmptyArray(value) {
   return value.length !== 0;
 }
 
+// lib/utils/stringify.ts
+function stringifySymbol(symbol) {
+  return symbol.description ?? "";
+}
+
 // lib/utils/joinPath.ts
 var identifierRegex = /[$_\p{ID_Start}][$\u200c\u200d\p{ID_Continue}]*/u;
 function joinPath(path) {
   if (path.length === 1) {
-    return path[0].toString();
+    let propertyKey = path[0];
+    if (typeof propertyKey === "symbol") {
+      propertyKey = stringifySymbol(propertyKey);
+    }
+    return propertyKey.toString() || '""';
   }
-  return path.reduce((acc, item) => {
-    if (typeof item === "number") {
-      return acc + "[" + item.toString() + "]";
+  return path.reduce((acc, propertyKey) => {
+    if (typeof propertyKey === "number") {
+      return acc + "[" + propertyKey.toString() + "]";
     }
-    if (item.includes('"')) {
-      return acc + '["' + escapeQuotes(item) + '"]';
+    if (typeof propertyKey === "symbol") {
+      propertyKey = stringifySymbol(propertyKey);
     }
-    if (!identifierRegex.test(item)) {
-      return acc + '["' + item + '"]';
+    if (propertyKey.includes('"')) {
+      return acc + '["' + escapeQuotes(propertyKey) + '"]';
+    }
+    if (!identifierRegex.test(propertyKey)) {
+      return acc + '["' + propertyKey + '"]';
     }
     const separator = acc.length === 0 ? "" : ".";
-    return acc + separator + item;
+    return acc + separator + propertyKey;
   }, "");
 }
 function escapeQuotes(str) {
   return str.replace(/"/g, '\\"');
 }
 
-// lib/config.ts
+// lib/v3/config.ts
 var ISSUE_SEPARATOR = "; ";
 var MAX_ISSUES_IN_MESSAGE = 99;
 var PREFIX = "Validation error";
 var PREFIX_SEPARATOR = ": ";
 var UNION_SEPARATOR = ", or ";
 
-// lib/MessageBuilder.ts
+// lib/v3/MessageBuilder.ts
 function createMessageBuilder(props = {}) {
   const {
     issueSeparator = ISSUE_SEPARATOR,
@@ -38537,7 +38549,7 @@ function prefixMessage(message, prefix, prefixSeparator) {
   return PREFIX;
 }
 
-// lib/fromZodIssue.ts
+// lib/v3/fromZodIssue.ts
 function fromZodIssue(issue, options = {}) {
   const messageBuilder = createMessageBuilderFromOptions(options);
   const message = messageBuilder([issue]);
@@ -38550,7 +38562,7 @@ function createMessageBuilderFromOptions(options) {
   return createMessageBuilder(options);
 }
 
-// lib/errorMap.ts
+// lib/v3/errorMap.ts
 var errorMap = (issue, ctx) => {
   const error = fromZodIssue({
     ...issue,
@@ -38563,7 +38575,7 @@ var errorMap = (issue, ctx) => {
   };
 };
 
-// lib/fromZodError.ts
+// lib/v3/fromZodError.ts
 function fromZodError(zodError, options = {}) {
   if (!isZodErrorLike(zodError)) {
     throw new TypeError(
@@ -38590,7 +38602,7 @@ function createMessageBuilderFromOptions2(options) {
   return createMessageBuilder(options);
 }
 
-// lib/toValidationError.ts
+// lib/v3/toValidationError.ts
 var toValidationError = (options = {}) => (err) => {
   if (isZodErrorLike(err)) {
     return fromZodErrorWithoutRuntimeCheck(err, options);
@@ -38601,7 +38613,7 @@ var toValidationError = (options = {}) => (err) => {
   return new ValidationError("Unknown error");
 };
 
-// lib/fromError.ts
+// lib/v3/fromError.ts
 function fromError(err, options = {}) {
   return toValidationError(options)(err);
 }
@@ -38963,7 +38975,7 @@ const standalone_1 = __nccwpck_require__(6208);
 const fs = __importStar(__nccwpck_require__(3024));
 const toml = __importStar(__nccwpck_require__(2132));
 const node_path_1 = __importDefault(__nccwpck_require__(6760));
-const zod_validation_error_1 = __nccwpck_require__(1665);
+const zod_validation_error_1 = __nccwpck_require__(4042);
 const zod_1 = __nccwpck_require__(2046);
 function addAddonName(addon, name) {
     if (addon.addon_names === undefined) {
@@ -39117,7 +39129,7 @@ async function readManifest(manifestPath) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.manifest = exports.addon = void 0;
 const zod_1 = __nccwpck_require__(2046);
-const zod_validation_error_1 = __nccwpck_require__(1665);
+const zod_validation_error_1 = __nccwpck_require__(4042);
 zod_1.z.setErrorMap(zod_validation_error_1.errorMap);
 const installMode = zod_1.z.enum(['gw2load', 'arc']);
 const version = zod_1.z.tuple([zod_1.z.number(), zod_1.z.number(), zod_1.z.number(), zod_1.z.number()]);
