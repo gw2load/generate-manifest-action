@@ -78,7 +78,7 @@
     "@jest/globals": "^29.7.0",
     "@octokit/types": "^13.10.0",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.14.0",
+    "@types/node": "^24.0.7",
     "@typescript-eslint/eslint-plugin": "^7.13.1",
     "@typescript-eslint/parser": "^7.13.1",
     "@vercel/ncc": "^0.38.3",
