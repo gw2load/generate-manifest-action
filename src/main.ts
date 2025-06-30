@@ -125,7 +125,7 @@ export async function generateManifest({
 
     for (const existingAddon of existingAddons) {
       const found = addons.find(
-        value => value.package.id === existingAddon.package.id
+        (value) => value.package.id === existingAddon.package.id
       )
       if (!found) {
         core.warning(
