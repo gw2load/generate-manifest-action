@@ -23,7 +23,7 @@ import require$$1$3 from 'console';
 import require$$1$4 from 'url';
 import require$$3$2 from 'zlib';
 import require$$0$a from 'diagnostics_channel';
-import require$$2$3, { exec as exec$1 } from 'child_process';
+import require$$2$3, { execSync } from 'child_process';
 import require$$6 from 'timers';
 import path from 'node:path';
 import * as fs from 'node:fs';
@@ -37050,11 +37050,16 @@ async function saveToTmp(file) {
     return filePath;
 }
 function checkDllExports(filepath) {
-    let result = false;
-    exec$1(`./winedump -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`, (error) => {
-        result = error !== undefined;
-    });
-    return result;
+    // get directory containing the `winedump` binary
+    // we can't use the working directory for this, as that is set to the workflow directory inside the action
+    const cwd = path.join(import.meta.dirname, '..');
+    try {
+        execSync(`./winedump -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`, { cwd });
+        return true;
+    }
+    catch {
+        return false;
+    }
 }
 function createReleaseFromDll(addon, fileBuffer, id, downloadUrl) {
     const fileParser = new libExports.PeFileParser();
