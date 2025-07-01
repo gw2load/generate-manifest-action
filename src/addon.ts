@@ -3,7 +3,7 @@ import { unzipSync } from 'fflate'
 import { tmpdir } from 'os'
 import path from 'node:path'
 import * as fs from 'node:fs'
-import { exec } from 'child_process'
+import { execSync } from 'child_process'
 import { Addon, Release, Version } from './schema.js'
 
 export function isGreater(a: Version, b: Version): boolean {
@@ -57,14 +57,19 @@ async function saveToTmp(file: File): Promise<string> {
 }
 
 function checkDllExports(filepath: string): boolean {
-  let result = false
-  exec(
-    `./winedump -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`,
-    (error) => {
-      result = error !== undefined
-    }
-  )
-  return result
+  // get directory containing the `winedump` binary
+  // we can't use the working directory for this, as that is set to the workflow directory inside the action
+  const cwd = path.join(import.meta.dirname, '..')
+
+  try {
+    execSync(
+      `./winedump -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`,
+      { cwd }
+    )
+    return true
+  } catch {
+    return false
+  }
 }
 
 export function createReleaseFromDll(
