@@ -31319,7 +31319,8 @@ const addon = objectType({
 const manifest$1 = objectType({
     version: literalType(1),
     data: objectType({
-        addons: arrayType(addon)
+        addons: arrayType(addon),
+        loader: releaseInfo.default({})
     })
 });
 
@@ -41695,10 +41696,14 @@ async function generateManifest({ addonsPath, manifestPath }) {
     if (encounteredValidationError) {
         throw Error('Validation of some addons failed');
     }
-    // check if manifest already exists, then merge addon definitions
+    // read existing manifest if it exists
+    let existingManifest;
     if (manifestPath && fs$1.existsSync(manifestPath)) {
-        const existingAddons = await readManifest(manifestPath);
-        for (const existingAddon of existingAddons) {
+        existingManifest = await readManifest(manifestPath);
+    }
+    // merge addon definitions
+    if (existingManifest?.addons) {
+        for (const existingAddon of existingManifest.addons) {
             const found = addons.find((value) => value.package.id === existingAddon.package.id);
             if (!found) {
                 coreExports.warning(`Addon ${existingAddon.package.id} was removed from manifest!`);
@@ -41726,10 +41731,25 @@ async function generateManifest({ addonsPath, manifestPath }) {
             console.log(error);
         }
     }
+    // update loader
+    let loader = {};
+    try {
+        // TODO: make gw2load repo configurable
+        loader = await updateFromGithub(existingManifest?.loader, {
+            url: 'gw2load/GW2Load'
+        });
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const message = `gw2load failed to update: ${errorMessage}`;
+        coreExports.error(message);
+        console.log(error);
+    }
     const manifest = {
         version: 1,
         data: {
-            addons
+            addons,
+            loader
         }
     };
     return manifest;
@@ -41742,12 +41762,12 @@ async function readManifest(manifestPath) {
     }
     if (Array.isArray(manifestJson)) {
         // if the manifest is just an array, try to parse as array of addons
-        return arrayType(addon).parse(manifestJson);
+        return { addons: arrayType(addon).parse(manifestJson) };
     }
     if ('version' in manifestJson) {
         // if the manifest has a version, we can parse it
         const manifest = manifest$1.parse(manifestJson);
-        return manifest.data.addons;
+        return manifest.data;
     }
     // the manifest was neither an array nor had it version set
     throw new Error('Invalid manifest');

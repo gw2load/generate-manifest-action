@@ -4,7 +4,8 @@ import {
   Addon,
   manifest as manifestSchema,
   Manifest,
-  addonConfig
+  addonConfig,
+  ReleaseInfo
 } from './schema.js'
 import { updateFromGithub } from './github.js'
 import { updateStandalone } from './standalone.js'
@@ -135,11 +136,15 @@ export async function generateManifest({
     throw Error('Validation of some addons failed')
   }
 
-  // check if manifest already exists, then merge addon definitions
+  // read existing manifest if it exists
+  let existingManifest
   if (manifestPath && fs.existsSync(manifestPath)) {
-    const existingAddons = await readManifest(manifestPath)
+    existingManifest = await readManifest(manifestPath)
+  }
 
-    for (const existingAddon of existingAddons) {
+  // merge addon definitions
+  if (existingManifest?.addons) {
+    for (const existingAddon of existingManifest.addons) {
       const found = addons.find(
         (value) => value.package.id === existingAddon.package.id
       )
@@ -174,17 +179,34 @@ export async function generateManifest({
     }
   }
 
+  // update loader
+  let loader: ReleaseInfo = {}
+  try {
+    // TODO: make gw2load repo configurable
+    loader = await updateFromGithub(existingManifest?.loader, {
+      url: 'gw2load/GW2Load'
+    })
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const message = `gw2load failed to update: ${errorMessage}`
+    core.error(message)
+    console.log(error)
+  }
+
   const manifest: Manifest = {
     version: 1,
     data: {
-      addons
+      addons,
+      loader
     }
   }
 
   return manifest
 }
 
-async function readManifest(manifestPath: string): Promise<Addon[]> {
+async function readManifest(
+  manifestPath: string
+): Promise<{ addons: Addon[]; loader?: ReleaseInfo }> {
   const manifestJson: unknown = JSON.parse(
     fs.readFileSync(manifestPath, 'utf8')
   )
@@ -196,13 +218,13 @@ async function readManifest(manifestPath: string): Promise<Addon[]> {
 
   if (Array.isArray(manifestJson)) {
     // if the manifest is just an array, try to parse as array of addons
-    return z.array(addonSchema).parse(manifestJson)
+    return { addons: z.array(addonSchema).parse(manifestJson) }
   }
 
   if ('version' in manifestJson) {
     // if the manifest has a version, we can parse it
     const manifest = manifestSchema.parse(manifestJson)
-    return manifest.data.addons
+    return manifest.data
   }
 
   // the manifest was neither an array nor had it version set

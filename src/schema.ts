@@ -78,7 +78,8 @@ export type Addon = z.infer<typeof addon>
 export const manifest = z.object({
   version: z.literal(1),
   data: z.object({
-    addons: z.array(addon)
+    addons: z.array(addon),
+    loader: releaseInfo.default({})
   })
 })
 export type Manifest = z.infer<typeof manifest>
