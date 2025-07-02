@@ -31,7 +31,7 @@ import path from 'node:path';
 import * as fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHash } from 'node:crypto';
 import * as fs$1 from 'node:fs';
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
@@ -40449,24 +40449,27 @@ async function updateStandalone(addon, host) {
     addon.prerelease = undefined;
 }
 async function downloadAndCheckVersion(addon, oldRelease, version_url, host_url) {
+    // load version
     const versionRes = await fetch(version_url, {
         signal: AbortSignal.timeout(10_000)
     });
     if (versionRes.status !== 200) {
         throw new Error(`version response status for addon ${addon.package.name}: ${versionRes.status}`);
     }
-    let version = await versionRes.text();
-    version = version.trim();
-    if (!oldRelease || oldRelease.id !== version) {
-        const release = await downloadStandalone(addon, host_url, version);
-        if (release !== undefined) {
-            if (!oldRelease || isGreater(release.version, oldRelease.version)) {
-                return release;
-                // TODO: new release was found
-            }
-            return oldRelease;
+    // create hash of version response
+    const id = createHash('sha256')
+        .update(Buffer.from(await versionRes.arrayBuffer()))
+        .digest('hex');
+    // only download addon if its new or the id has changed
+    if (!oldRelease || oldRelease.id !== id) {
+        const release = await downloadStandalone(addon, host_url, id);
+        if (!release) {
+            throw new Error(`no release asset found for addon ${addon.package.name}`);
         }
-        throw new Error(`no release asset found for addon ${addon.package.name}`);
+        // ensure the new release is actually newer
+        if (!oldRelease || isGreater(release.version, oldRelease.version)) {
+            return release;
+        }
     }
     return oldRelease;
 }
