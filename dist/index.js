@@ -1,4 +1,4 @@
-import require$$0, { tmpdir } from 'os';
+import require$$0 from 'os';
 import require$$0$1 from 'crypto';
 import require$$1 from 'fs';
 import require$$1$5 from 'path';
@@ -28,7 +28,11 @@ import require$$0$9 from 'diagnostics_channel';
 import require$$2$3, { execSync } from 'child_process';
 import require$$6$1 from 'timers';
 import path from 'node:path';
-import * as fs from 'node:fs';
+import * as fs from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
+import { randomBytes } from 'node:crypto';
+import * as fs$1 from 'node:fs';
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -31308,6 +31312,78 @@ const manifest$1 = objectType({
     })
 });
 
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+/* global Reflect, Promise, SuppressedError, Symbol, Iterator */
+
+
+function __addDisposableResource(env, value, async) {
+    if (value !== null && value !== void 0) {
+        if (typeof value !== "object" && typeof value !== "function") throw new TypeError("Object expected.");
+        var dispose, inner;
+        if (async) {
+            if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
+            dispose = value[Symbol.asyncDispose];
+        }
+        if (dispose === void 0) {
+            if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
+            dispose = value[Symbol.dispose];
+            if (async) inner = dispose;
+        }
+        if (typeof dispose !== "function") throw new TypeError("Object not disposable.");
+        if (inner) dispose = function() { try { inner.call(this); } catch (e) { return Promise.reject(e); } };
+        env.stack.push({ value: value, dispose: dispose, async: async });
+    }
+    else if (async) {
+        env.stack.push({ async: true });
+    }
+    return value;
+
+}
+
+var _SuppressedError = typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+    var e = new Error(message);
+    return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+};
+
+function __disposeResources(env) {
+    function fail(e) {
+        env.error = env.hasError ? new _SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
+        env.hasError = true;
+    }
+    var r, s = 0;
+    function next() {
+        while (r = env.stack.pop()) {
+            try {
+                if (!r.async && s === 1) return s = 0, env.stack.push(r), Promise.resolve().then(next);
+                if (r.dispose) {
+                    var result = r.dispose.call(r.value);
+                    if (r.async) return s |= 2, Promise.resolve(result).then(next, function(e) { fail(e); return next(); });
+                }
+                else s |= 1;
+            }
+            catch (e) {
+                fail(e);
+            }
+        }
+        if (s === 1) return env.hasError ? Promise.reject(env.error) : Promise.resolve();
+        if (env.hasError) throw env.error;
+    }
+    return next();
+}
+
 var lib = {};
 
 var peFileParser = {};
@@ -36184,34 +36260,52 @@ async function createReleaseFromArchive(addon, fileBuffer, id, downloadUrl) {
         .filter((value) => value.endsWith('.dll'))
         .map((value) => new File([unzipped[value]], value));
     for (const file of files) {
-        // save file to tmp
-        const filePath = await saveToTmp(file);
-        // check if dll has exports, skip if not
-        if (!checkDllExports(filePath)) {
-            continue;
+        const env_1 = { stack: [], error: void 0, hasError: false };
+        try {
+            // save file to tmp
+            const tempFile = __addDisposableResource(env_1, await saveToTmp(file)
+            // check if dll has exports, skip if not
+            , true);
+            // check if dll has exports, skip if not
+            if (!checkDllExports(tempFile.filePath)) {
+                continue;
+            }
+            // create release
+            const subFileBuffer = await file.arrayBuffer();
+            return createReleaseFromDll(addon, subFileBuffer, id, downloadUrl);
         }
-        // create release
-        const subFileBuffer = await file.arrayBuffer();
-        return createReleaseFromDll(addon, subFileBuffer, id, downloadUrl);
+        catch (e_1) {
+            env_1.error = e_1;
+            env_1.hasError = true;
+        }
+        finally {
+            const result_1 = __disposeResources(env_1);
+            if (result_1)
+                await result_1;
+        }
     }
     return undefined;
 }
 async function saveToTmp(file) {
-    let filePath = tmpdir();
-    filePath = path.resolve(filePath, file.name);
-    // enforce folder is there
-    const dirPath = path.dirname(filePath);
-    fs.mkdirSync(dirPath, { recursive: true });
+    // generate tmp file name
+    const prefix = randomBytes(4).toString('base64url');
+    const fileName = path.basename(file.name);
+    const filePath = path.resolve(tmpdir(), `${prefix}-${fileName}`);
+    // write file contents
     const buffer = await file.arrayBuffer();
-    fs.writeFileSync(filePath, new DataView(buffer));
-    return filePath;
+    await fs.writeFile(filePath, Buffer.from(buffer));
+    return {
+        filePath,
+        [Symbol.asyncDispose]: () => fs.rm(filePath)
+    };
 }
 function checkDllExports(filepath) {
-    // get directory containing the `winedump` binary
+    // get path to winedump binary
     // we can't use the working directory for this, as that is set to the workflow directory inside the action
-    const cwd = path.join(import.meta.dirname, '..');
+    const winedump = fileURLToPath(new URL('../winedump', import.meta.url));
+    const command = `${winedump} -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`;
     try {
-        execSync(`./winedump -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`, { cwd });
+        execSync(command);
         return true;
     }
     catch {
@@ -44471,7 +44565,7 @@ async function run() {
         const manifestPath = manifestPathInput !== '' ? path.resolve(manifestPathInput) : undefined;
         const manifest = await generateManifest({ addonsPath, manifestPath });
         if (manifestPath) {
-            fs.writeFileSync(manifestPath, JSON.stringify(manifest));
+            fs$1.writeFileSync(manifestPath, JSON.stringify(manifest));
         }
         else {
             console.log(JSON.stringify(manifest, null, 2));
@@ -44486,7 +44580,7 @@ async function run() {
 }
 async function generateManifest({ addonsPath, manifestPath }) {
     // make sure addons directory exists
-    if (!fs.existsSync(addonsPath)) {
+    if (!fs$1.existsSync(addonsPath)) {
         throw new Error(`Addon directory does not exist: ${addonsPath}`);
     }
     // manifest path should either be undefined to output to STDOUT
@@ -44499,13 +44593,13 @@ async function generateManifest({ addonsPath, manifestPath }) {
     // flag if a validation error was encountered while reading addon configs
     let encounteredValidationError = false;
     // collect addons from addon directory
-    for (const fileName of fs.readdirSync(addonsPath)) {
+    for (const fileName of fs$1.readdirSync(addonsPath)) {
         // skip files that don't end with .toml
         if (!fileName.endsWith('.toml')) {
             continue;
         }
         const filePath = path.join(addonsPath, fileName);
-        const tomlContent = fs.readFileSync(filePath);
+        const tomlContent = fs$1.readFileSync(filePath);
         try {
             const config = addon.parse(tomlExports.parse(tomlContent.toString()));
             addons.push(config);
@@ -44531,7 +44625,7 @@ async function generateManifest({ addonsPath, manifestPath }) {
         throw Error('Validation of some addons failed');
     }
     // check if manifest already exists, then merge addon definitions
-    if (manifestPath && fs.existsSync(manifestPath)) {
+    if (manifestPath && fs$1.existsSync(manifestPath)) {
         const existingAddons = await readManifest(manifestPath);
         for (const existingAddon of existingAddons) {
             const found = addons.find((value) => value.package.id === existingAddon.package.id);
@@ -44565,7 +44659,7 @@ async function generateManifest({ addonsPath, manifestPath }) {
     return manifest;
 }
 async function readManifest(manifestPath) {
-    const manifestJson = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    const manifestJson = JSON.parse(fs$1.readFileSync(manifestPath, 'utf8'));
     // manifest has to be an object (arrays are objects too)
     if (typeof manifestJson !== 'object' || !manifestJson) {
         throw new Error('Invalid manifest');

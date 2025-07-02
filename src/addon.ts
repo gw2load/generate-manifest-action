@@ -1,10 +1,12 @@
 import { PeFileParser } from 'pe-toolkit'
 import { unzipSync } from 'fflate'
-import { tmpdir } from 'os'
 import path from 'node:path'
-import * as fs from 'node:fs'
+import * as fs from 'node:fs/promises'
 import { execSync } from 'child_process'
 import { Addon, Release, Version } from './schema.js'
+import { tmpdir } from 'node:os'
+import { fileURLToPath } from 'node:url'
+import { randomBytes } from 'node:crypto'
 
 export function isGreater(a: Version, b: Version): boolean {
   for (let i = 0; i < 4; i++) {
@@ -28,10 +30,10 @@ export async function createReleaseFromArchive(
 
   for (const file of files) {
     // save file to tmp
-    const filePath = await saveToTmp(file)
+    await using tempFile = await saveToTmp(file)
 
     // check if dll has exports, skip if not
-    if (!checkDllExports(filePath)) {
+    if (!checkDllExports(tempFile.filePath)) {
       continue
     }
 
@@ -43,29 +45,30 @@ export async function createReleaseFromArchive(
   return undefined
 }
 
-async function saveToTmp(file: File): Promise<string> {
-  let filePath = tmpdir()
-  filePath = path.resolve(filePath, file.name)
+async function saveToTmp(file: File) {
+  // generate tmp file name
+  const prefix = randomBytes(4).toString('base64url')
+  const fileName = path.basename(file.name)
+  const filePath = path.resolve(tmpdir(), `${prefix}-${fileName}`)
 
-  // enforce folder is there
-  const dirPath = path.dirname(filePath)
-  fs.mkdirSync(dirPath, { recursive: true })
-
+  // write file contents
   const buffer = await file.arrayBuffer()
-  fs.writeFileSync(filePath, new DataView(buffer))
-  return filePath
+  await fs.writeFile(filePath, Buffer.from(buffer))
+
+  return {
+    filePath,
+    [Symbol.asyncDispose]: () => fs.rm(filePath)
+  }
 }
 
 function checkDllExports(filepath: string): boolean {
-  // get directory containing the `winedump` binary
+  // get path to winedump binary
   // we can't use the working directory for this, as that is set to the workflow directory inside the action
-  const cwd = path.join(import.meta.dirname, '..')
+  const winedump = fileURLToPath(new URL('../winedump', import.meta.url))
+  const command = `${winedump} -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`
 
   try {
-    execSync(
-      `./winedump -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`,
-      { cwd }
-    )
+    execSync(command)
     return true
   } catch {
     return false
