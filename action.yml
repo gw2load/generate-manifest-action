@@ -12,6 +12,8 @@ inputs:
     default: addons
   manifest_path:
     description: 'Path to the manifest.json file'
+  loader_repository:
+    description: Repository of the loader
 
 outputs: {}
 
