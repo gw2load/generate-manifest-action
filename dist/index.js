@@ -41652,6 +41652,7 @@ async function generateManifest({ addonsPath, manifestPath }) {
     }
     // list of addons
     const addons = [];
+    const addonFiles = new Map();
     // flag if a validation error was encountered while reading addon configs
     let encounteredValidationError = false;
     // collect addons from addon directory
@@ -41665,6 +41666,7 @@ async function generateManifest({ addonsPath, manifestPath }) {
         try {
             const config = addon.parse(toml.parse(tomlContent.toString()));
             addons.push(config);
+            addonFiles.set(config.package.id, filePath);
         }
         catch (error) {
             if (isZodErrorLike(error)) {
@@ -41708,8 +41710,11 @@ async function generateManifest({ addonsPath, manifestPath }) {
         catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             const message = `Addon ${addon.package.name} failed to update: ${errorMessage}`;
-            coreExports.error(message);
-            console.log(message);
+            coreExports.error(message, {
+                title: addon.package.name,
+                file: addonFiles.get(addon.package.id)
+            });
+            console.log(error);
         }
     }
     const manifest = {

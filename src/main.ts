@@ -80,6 +80,7 @@ export async function generateManifest({
 
   // list of addons
   const addons: Addon[] = []
+  const addonFiles = new Map<string, string>()
 
   // flag if a validation error was encountered while reading addon configs
   let encounteredValidationError = false
@@ -97,6 +98,7 @@ export async function generateManifest({
     try {
       const config = addonSchema.parse(toml.parse(tomlContent.toString()))
       addons.push(config)
+      addonFiles.set(config.package.id, filePath)
     } catch (error) {
       if (isZodErrorLike(error)) {
         // flag that we encountered a validation error so we can fail later
@@ -148,8 +150,11 @@ export async function generateManifest({
       const errorMessage =
         error instanceof Error ? error.message : String(error)
       const message = `Addon ${addon.package.name} failed to update: ${errorMessage}`
-      core.error(message)
-      console.log(message)
+      core.error(message, {
+        title: addon.package.name,
+        file: addonFiles.get(addon.package.id)
+      })
+      console.log(error)
     }
   }
 
