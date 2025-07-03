@@ -55,12 +55,22 @@ const installation = z.object({
   mode: installMode
 })
 
-export const addon = z.object({
+const releaseInfo = z.object({
+  release: release.optional().readonly(),
+  prerelease: release.optional().readonly()
+})
+export type ReleaseInfo = z.infer<typeof releaseInfo>
+
+export const addonConfig = z.object({
   package: pkg,
   host,
-  installation,
-  release: release.optional(),
-  prerelease: release.optional(),
+  installation
+})
+export type AddonConfig = z.infer<typeof addonConfig>
+
+export const addon = z.object({
+  ...addonConfig.shape,
+  ...releaseInfo.shape,
   addon_names: z.array(z.string()).optional()
 })
 export type Addon = z.infer<typeof addon>
