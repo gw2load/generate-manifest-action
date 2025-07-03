@@ -26,25 +26,21 @@ export async function updateFromGithub(
   existing: Readonly<ReleaseInfo> | undefined,
   host: GithubHost
 ): Promise<ReleaseInfo> {
-  const [owner, repo] = host.url.split('/')
+  // parse repository
+  const repository = parseRepository(host.url)
 
   // get list of all releases
-  const releases = await octokit.rest.repos.listReleases({
-    owner,
-    repo
-  })
+  const releases = await octokit.rest.repos.listReleases(repository)
 
   // try to get latest release
   // we could use the list of releases for this, but if the last 100 releases are prereleases/drafts we would not find one.
   // this guarantees we always find a release if one exists
-  const latestRelease = await octokit.rest.repos.getLatestRelease({
-    owner,
-    repo
-  })
+  const latestRelease = await octokit.rest.repos.getLatestRelease(repository)
 
   const release = await findAndCreateRelease(
     existing?.release,
-    latestRelease.data
+    latestRelease.data,
+    repository
   )
 
   // find pre-release until latest release
@@ -52,7 +48,8 @@ export async function updateFromGithub(
     if (githubRelease.prerelease && !githubRelease.draft) {
       const prerelease = await findAndCreateRelease(
         existing?.prerelease,
-        githubRelease
+        githubRelease,
+        repository
       )
 
       return { release, prerelease }
@@ -75,13 +72,14 @@ export async function updateFromGithub(
  */
 async function findAndCreateRelease(
   oldRelease: Readonly<Release> | undefined,
-  githubRelease: GetLatestReleaseType
+  githubRelease: GetLatestReleaseType,
+  repository: Repository
 ): Promise<Release | undefined> {
   if (checkAssetChanged(oldRelease, githubRelease)) {
     let found = false
     for (let i = 0; i < githubRelease.assets.length; i++) {
       const asset = githubRelease.assets[i]
-      const release = await downloadFromGithub(asset)
+      const release = await downloadFromGithub(asset, repository)
       if (release !== undefined) {
         release.asset_index = i
 
@@ -100,13 +98,19 @@ async function findAndCreateRelease(
 }
 
 async function downloadFromGithub(
-  asset: GetLatestReleaseAssetType
+  asset: GetLatestReleaseAssetType,
+  repository: Repository
 ): Promise<Release | undefined> {
-  const file = await fetch(asset.browser_download_url)
-  if (!file.ok) {
-    throw new Error(`Unable to download asset: ${asset.browser_download_url}`)
-  }
-  const fileBuffer = await file.arrayBuffer()
+  const response = await octokit.rest.repos.getReleaseAsset({
+    ...repository,
+    asset_id: asset.id,
+    headers: {
+      accept: 'application/octet-stream'
+    }
+  })
+
+  // need to cast data, as typescript doesn't know about `accept: application/octet-stream`
+  const fileBuffer = response.data as unknown as ArrayBuffer
 
   let release: Release | undefined
   if (asset.name.endsWith('.dll')) {
@@ -137,4 +141,11 @@ function checkAssetChanged(
   }
   const last_asset = githubRelease.assets[release.asset_index]
   return last_asset === undefined || last_asset.id.toString() !== release.id
+}
+
+type Repository = { owner: string; repo: string }
+
+function parseRepository(repsitory: string): Repository {
+  const [owner, repo] = repsitory.split('/')
+  return { owner, repo }
 }
