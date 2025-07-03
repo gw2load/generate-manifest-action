@@ -40444,7 +40444,9 @@ async function updateStandalone(addon, host) {
     addon.prerelease = undefined;
 }
 async function downloadAndCheckVersion(addon, oldRelease, version_url, host_url) {
-    const versionRes = await fetch(version_url);
+    const versionRes = await fetch(version_url, {
+        signal: AbortSignal.timeout(10_000)
+    });
     if (versionRes.status !== 200) {
         throw new Error(`version response status for addon ${addon.package.name}: ${versionRes.status}`);
     }
@@ -40464,7 +40466,7 @@ async function downloadAndCheckVersion(addon, oldRelease, version_url, host_url)
     return oldRelease;
 }
 async function downloadStandalone(addon, host_url, id) {
-    const file = await fetch(host_url);
+    const file = await fetch(host_url, { signal: AbortSignal.timeout(10_000) });
     if (!file.ok) {
         throw new Error(`Unable to download asset ${host_url}`);
     }
