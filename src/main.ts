@@ -3,7 +3,8 @@ import {
   addon as addonSchema,
   Addon,
   manifest as manifestSchema,
-  Manifest
+  Manifest,
+  addonConfig
 } from './schema.js'
 import { updateFromGithub } from './github.js'
 import { updateStandalone } from './standalone.js'
@@ -13,21 +14,34 @@ import path from 'node:path'
 import { isZodErrorLike } from 'zod-validation-error'
 import { z } from 'zod'
 
-export function addAddonName(addon: Addon, name: string): void {
+/** Add addon name to addon if not already known */
+function addAddonName(addon: Addon, name: string): void {
   if (addon.addon_names === undefined) {
     addon.addon_names = [name]
   } else {
     if (!addon.addon_names.includes(name)) {
-      addon.addon_names = addon.addon_names.concat(name)
+      addon.addon_names.push(name)
     }
   }
 }
 
 async function update(addon: Addon): Promise<void> {
-  if ('github' in addon.host) {
-    await updateFromGithub(addon, addon.host.github)
-  } else if ('standalone' in addon.host) {
-    await updateStandalone(addon, addon.host.standalone)
+  // get releases
+  const { release, prerelease } =
+    'github' in addon.host
+      ? await updateFromGithub(addon, addon.host.github)
+      : await updateStandalone(addon, addon.host.standalone)
+
+  // mutate addon (the update functions above will return the old release if no new one was found)
+  addon.release = release
+  addon.prerelease = prerelease
+
+  // add known addon names from releases
+  if (release) {
+    addAddonName(addon, release.name)
+  }
+  if (prerelease) {
+    addAddonName(addon, prerelease.name)
   }
 }
 
@@ -96,7 +110,7 @@ export async function generateManifest({
     const tomlContent = fs.readFileSync(filePath)
 
     try {
-      const config = addonSchema.parse(toml.parse(tomlContent.toString()))
+      const config = addonConfig.parse(toml.parse(tomlContent.toString()))
       addons.push(config)
       addonFiles.set(config.package.id, filePath)
     } catch (error) {

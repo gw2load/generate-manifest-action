@@ -4,49 +4,39 @@ import {
   createReleaseFromDll,
   isGreater
 } from './addon.js'
-import { addAddonName } from './main.js'
-import { Addon, Release, StandaloneHost } from './schema.js'
+import { Release, ReleaseInfo, StandaloneHost } from './schema.js'
 
 export async function updateStandalone(
-  addon: Addon,
+  existing: Readonly<ReleaseInfo>,
   host: StandaloneHost
-): Promise<void> {
-  if (!host.version_url) {
-    throw new Error(`no version_url for addon ${addon.package.name}`)
-  }
-  addon.release = await downloadAndCheckVersion(
-    addon,
-    addon.release,
+): Promise<ReleaseInfo> {
+  const release = await downloadAndCheckVersion(
+    existing.release,
     host.version_url,
     host.url
   )
 
   // only run when configured and release was found
-  if (host.prerelease_url && host.prerelease_version_url && addon.release) {
+  if (host.prerelease_url && host.prerelease_version_url && release) {
     const prerelease = await downloadAndCheckVersion(
-      addon,
-      addon.prerelease,
+      existing.prerelease,
       host.prerelease_version_url,
       host.prerelease_url
     )
 
     // check if prerelease is later than release, if not, remove prerelease
     if (prerelease) {
-      if (isGreater(prerelease.version, addon.release.version)) {
-        // TODO: new release was found die zweite
-        addon.prerelease = prerelease
-        return
+      if (isGreater(prerelease.version, release.version)) {
+        return { release, prerelease }
       }
     }
   }
 
-  // TODO: if prerelease is set, we removed it
-  addon.prerelease = undefined
+  return { release }
 }
 
 async function downloadAndCheckVersion(
-  addon: Addon,
-  oldRelease: Release | undefined,
+  oldRelease: Readonly<Release> | undefined,
   version_url: string,
   host_url: string
 ): Promise<Release | undefined> {
@@ -54,10 +44,8 @@ async function downloadAndCheckVersion(
   const versionRes = await fetch(version_url, {
     signal: AbortSignal.timeout(10_000)
   })
-  if (versionRes.status !== 200) {
-    throw new Error(
-      `version response status for addon ${addon.package.name}: ${versionRes.status}`
-    )
+  if (!versionRes.ok) {
+    throw new Error(`fetching version failed (${versionRes.status})`)
   }
 
   // create hash of version response
@@ -67,11 +55,7 @@ async function downloadAndCheckVersion(
 
   // only download addon if its new or the id has changed
   if (!oldRelease || oldRelease.id !== id) {
-    const release = await downloadStandalone(addon, host_url, id)
-
-    if (!release) {
-      throw new Error(`no release asset found for addon ${addon.package.name}`)
-    }
+    const release = await createRelease(host_url, id)
 
     // ensure the new release is actually newer
     if (!oldRelease || isGreater(release.version, oldRelease.version)) {
@@ -82,29 +66,22 @@ async function downloadAndCheckVersion(
   return oldRelease
 }
 
-async function downloadStandalone(
-  addon: Addon,
-  host_url: string,
-  id: string
-): Promise<Release | undefined> {
+async function createRelease(host_url: string, id: string): Promise<Release> {
+  // download addon
   const file = await fetch(host_url, { signal: AbortSignal.timeout(10_000) })
   if (!file.ok) {
     throw new Error(`Unable to download asset ${host_url}`)
   }
 
+  // read addon to memory
   const fileBuffer = await file.arrayBuffer()
-  let release: Release | undefined
+
+  // handle addon depending on file extension
   if (file.url.endsWith('.dll')) {
-    release = createReleaseFromDll(addon, fileBuffer, id, file.url)
+    return createReleaseFromDll(fileBuffer, id, file.url)
   } else if (file.url.endsWith('.zip')) {
-    release = await createReleaseFromArchive(addon, fileBuffer, id, file.url)
-  } else {
-    throw new Error(`given host url has not supported file ending ${host_url}`)
+    return await createReleaseFromArchive(fileBuffer, id, file.url)
   }
 
-  if (release !== undefined) {
-    addAddonName(addon, release.name)
-  }
-
-  return release
+  throw new Error(`given host url has not supported file ending ${host_url}`)
 }
