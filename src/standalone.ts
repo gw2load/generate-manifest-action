@@ -49,7 +49,9 @@ async function downloadAndCheckVersion(
   version_url: string,
   host_url: string
 ): Promise<Release | undefined> {
-  const versionRes = await fetch(version_url)
+  const versionRes = await fetch(version_url, {
+    signal: AbortSignal.timeout(10_000)
+  })
   if (versionRes.status !== 200) {
     throw new Error(
       `version response status for addon ${addon.package.name}: ${versionRes.status}`
@@ -80,7 +82,7 @@ async function downloadStandalone(
   host_url: string,
   id: string
 ): Promise<Release | undefined> {
-  const file = await fetch(host_url)
+  const file = await fetch(host_url, { signal: AbortSignal.timeout(10_000) })
   if (!file.ok) {
     throw new Error(`Unable to download asset ${host_url}`)
   }
