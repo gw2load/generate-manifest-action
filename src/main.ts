@@ -8,7 +8,7 @@ import {
 import { updateFromGithub } from './github.js'
 import { updateStandalone } from './standalone.js'
 import * as fs from 'node:fs'
-import * as toml from 'toml'
+import toml from 'smol-toml'
 import path from 'node:path'
 import { isZodErrorLike } from 'zod-validation-error'
 import { z } from 'zod'
