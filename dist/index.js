@@ -40361,8 +40361,16 @@ async function updateFromGithub(existing, host) {
     // try to get latest release
     // we could use the list of releases for this, but if the last 100 releases are prereleases/drafts we would not find one.
     // this guarantees we always find a release if one exists
-    const latestRelease = await octokit.rest.repos.getLatestRelease(repository);
-    const release = await findAndCreateRelease(existing?.release, latestRelease.data, repository);
+    let latestRelease;
+    try {
+        latestRelease = await octokit.rest.repos.getLatestRelease(repository);
+    }
+    catch {
+        console.log(`Could not find latest release`);
+    }
+    const release = latestRelease
+        ? await findAndCreateRelease(existing?.release, latestRelease.data, repository)
+        : undefined;
     // find pre-release until latest release
     for (const githubRelease of releases.data) {
         if (githubRelease.prerelease && !githubRelease.draft) {
