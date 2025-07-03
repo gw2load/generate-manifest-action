@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import {
   createReleaseFromArchive,
   createReleaseFromDll,
@@ -49,6 +50,7 @@ async function downloadAndCheckVersion(
   version_url: string,
   host_url: string
 ): Promise<Release | undefined> {
+  // load version
   const versionRes = await fetch(version_url, {
     signal: AbortSignal.timeout(10_000)
   })
@@ -57,21 +59,24 @@ async function downloadAndCheckVersion(
       `version response status for addon ${addon.package.name}: ${versionRes.status}`
     )
   }
-  let version = await versionRes.text()
-  version = version.trim()
 
-  if (!oldRelease || oldRelease.id !== version) {
-    const release = await downloadStandalone(addon, host_url, version)
-    if (release !== undefined) {
-      if (!oldRelease || isGreater(release.version, oldRelease.version)) {
-        return release
+  // create hash of version response
+  const id = createHash('sha256')
+    .update(Buffer.from(await versionRes.arrayBuffer()))
+    .digest('hex')
 
-        // TODO: new release was found
-      }
-      return oldRelease
+  // only download addon if its new or the id has changed
+  if (!oldRelease || oldRelease.id !== id) {
+    const release = await downloadStandalone(addon, host_url, id)
+
+    if (!release) {
+      throw new Error(`no release asset found for addon ${addon.package.name}`)
     }
 
-    throw new Error(`no release asset found for addon ${addon.package.name}`)
+    // ensure the new release is actually newer
+    if (!oldRelease || isGreater(release.version, oldRelease.version)) {
+      return release
+    }
   }
 
   return oldRelease
