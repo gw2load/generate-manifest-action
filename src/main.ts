@@ -152,7 +152,9 @@ export async function generateManifest({
       const message = `Addon ${addon.package.name} failed to update: ${errorMessage}`
       core.error(message, {
         title: addon.package.name,
-        file: addonFiles.get(addon.package.id)
+        file: addonFiles.get(addon.package.id),
+        startLine: 1,
+        endLine: 1
       })
       console.log(error)
     }
