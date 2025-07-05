@@ -104,47 +104,42 @@ export function createReleaseFromDll(
   }
 
   // read version
-  let version: Version = [
-    (fixedFileInfo.getStruct().dwFileVersionMS >> 16) & 0xffff,
-    fixedFileInfo.getStruct().dwFileVersionMS & 0xffff,
-    (fixedFileInfo.getStruct().dwFileVersionLS >> 16) & 0xffff,
-    fixedFileInfo.getStruct().dwFileVersionLS & 0xffff
-  ]
-  if (version.every((value) => value === 0)) {
-    version = [
-      (fixedFileInfo.getStruct().dwProductVersionMS >> 16) & 0xffff,
-      fixedFileInfo.getStruct().dwProductVersionMS & 0xffff,
-      (fixedFileInfo.getStruct().dwProductVersionLS >> 16) & 0xffff,
-      fixedFileInfo.getStruct().dwProductVersionLS & 0xffff
-    ]
-  }
-  if (version.every((value) => value === 0)) {
+  const {
+    dwFileVersionMS,
+    dwFileVersionLS,
+    dwProductVersionMS,
+    dwProductVersionLS
+  } = fixedFileInfo.getStruct()
+
+  const version =
+    parseVersion(dwFileVersionMS, dwFileVersionLS) ??
+    parseVersion(dwProductVersionMS, dwProductVersionLS)
+
+  if (!version) {
     throw new Error(`no addonVersion found`)
   }
 
-  // read version string
-  // console.log(versionInfo)
-  let versionStr = undefined
-  let name = undefined
+  // get string file info for `name` and optional `version_str`
   const stringFileInfo = versionInfo.getStringFileInfo()
   if (stringFileInfo === undefined) {
     throw new Error(`No StringFileInfo found`)
-  } else {
-    const stringInfo = Object.values(
-      stringFileInfo.getStringTables()
-    )[0].toObject()
-
-    versionStr =
-      stringInfo['FileVersion'] ??
-      stringInfo['ProductVersion'] ??
-      version.join('.')
-
-    // read name
-    name = stringInfo['ProductName'] ?? stringInfo['FileDescription']
-    if (name === undefined) {
-      throw new Error(`No addonName found`)
-    }
   }
+
+  const stringInfo = Object.values(
+    stringFileInfo.getStringTables()
+  )[0].toObject()
+
+  // read name
+  const name = stringInfo['ProductName'] ?? stringInfo['FileDescription']
+  if (name === undefined) {
+    throw new Error(`No addonName found`)
+  }
+
+  // read version string (fallback to version)
+  const versionStr =
+    stringInfo['FileVersion'] ??
+    stringInfo['ProductVersion'] ??
+    version.join('.')
 
   // return release
   return {
@@ -154,4 +149,14 @@ export function createReleaseFromDll(
     version_str: versionStr,
     download_url: downloadUrl
   }
+}
+
+/** Combines the most significant and least significant bits to a version */
+function parseVersion(ms: number, ls: number): Version | undefined {
+  // 0.0.0.0 (=0x00000000 0x00000000) is not a valid version
+  if (ms === 0 && ls === 0) {
+    return undefined
+  }
+
+  return [(ms >> 16) & 0xffff, ms & 0xffff, (ls >> 16) & 0xffff, ls & 0xffff]
 }
