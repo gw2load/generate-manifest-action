@@ -3,7 +3,7 @@ import { unzipSync } from 'fflate'
 import path from 'node:path'
 import * as fs from 'node:fs/promises'
 import { execSync } from 'child_process'
-import { Addon, Release, Version } from './schema.js'
+import { Release, Version } from './schema.js'
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { randomBytes } from 'node:crypto'
@@ -18,11 +18,10 @@ export function isGreater(a: Version, b: Version): boolean {
 }
 
 export async function createReleaseFromArchive(
-  addon: Addon,
   fileBuffer: ArrayBuffer,
   id: string,
   downloadUrl: string
-): Promise<Release | undefined> {
+): Promise<Release> {
   const unzipped = unzipSync(new Uint8Array(fileBuffer))
   const files = Object.keys(unzipped)
     .filter((value) => value.endsWith('.dll'))
@@ -39,10 +38,10 @@ export async function createReleaseFromArchive(
 
     // create release
     const subFileBuffer = await file.arrayBuffer()
-    return createReleaseFromDll(addon, subFileBuffer, id, downloadUrl)
+    return createReleaseFromDll(subFileBuffer, id, downloadUrl)
   }
 
-  return undefined
+  throw new Error(`no valid release assets found in archive`)
 }
 
 async function saveToTmp(file: File) {
@@ -76,85 +75,83 @@ function checkDllExports(filepath: string): boolean {
 }
 
 export function createReleaseFromDll(
-  addon: Addon,
   fileBuffer: ArrayBuffer,
   id: string,
   downloadUrl: string
 ): Release {
+  // parse dll
   const fileParser = new PeFileParser()
-
   fileParser.parseBytes(fileBuffer)
+
   const versionInfoResource = fileParser.getVersionInfoResources()
   if (versionInfoResource === undefined) {
-    throw new Error(
-      `No versionInfoResource found for addon ${addon.package.name}`
-    )
+    throw new Error(`No versionInfoResource found`)
   }
 
   const vsInfoSub = Object.values(versionInfoResource)[0]
   if (vsInfoSub === undefined) {
-    throw new Error(`no vsInfoSub found for addon ${addon.package.name}`)
+    throw new Error(`no vsInfoSub found`)
   }
 
   const versionInfo = Object.values(vsInfoSub)[0]
   if (versionInfo === undefined) {
-    throw new Error(`No versionInfo found for ${addon.package.name}`)
+    throw new Error(`No versionInfo found`)
   }
 
   const fixedFileInfo = versionInfo.getFixedFileInfo()
   if (fixedFileInfo === undefined) {
-    throw new Error(`No fileInfo found for ${addon.package.name}`)
+    throw new Error(`No fileInfo found`)
   }
 
-  let addonVersion: Version = [
+  // read version
+  let version: Version = [
     (fixedFileInfo.getStruct().dwFileVersionMS >> 16) & 0xffff,
     fixedFileInfo.getStruct().dwFileVersionMS & 0xffff,
     (fixedFileInfo.getStruct().dwFileVersionLS >> 16) & 0xffff,
     fixedFileInfo.getStruct().dwFileVersionLS & 0xffff
   ]
-  if (addonVersion.every((value) => value === 0)) {
-    addonVersion = [
+  if (version.every((value) => value === 0)) {
+    version = [
       (fixedFileInfo.getStruct().dwProductVersionMS >> 16) & 0xffff,
       fixedFileInfo.getStruct().dwProductVersionMS & 0xffff,
       (fixedFileInfo.getStruct().dwProductVersionLS >> 16) & 0xffff,
       fixedFileInfo.getStruct().dwProductVersionLS & 0xffff
     ]
   }
-  if (addonVersion.every((value) => value === 0)) {
-    throw new Error(`no addonVersion found for addon ${addon.package.name}`)
+  if (version.every((value) => value === 0)) {
+    throw new Error(`no addonVersion found`)
   }
 
   // read version string
   // console.log(versionInfo)
-  let addonVersionStr = undefined
-  let addonName = undefined
+  let versionStr = undefined
+  let name = undefined
   const stringFileInfo = versionInfo.getStringFileInfo()
   if (stringFileInfo === undefined) {
-    throw new Error(`No StringFileInfo found for addon ${addon.package.name}`)
+    throw new Error(`No StringFileInfo found`)
   } else {
     const stringInfo = Object.values(
       stringFileInfo.getStringTables()
     )[0].toObject()
 
-    addonVersionStr =
+    versionStr =
       stringInfo['FileVersion'] ??
       stringInfo['ProductVersion'] ??
-      addonVersion.join('.')
+      version.join('.')
 
     // read name
-    addonName = stringInfo['ProductName'] ?? stringInfo['FileDescription']
-    if (addonName === undefined) {
-      throw new Error(`No addonName found for addon ${addon.package.name}`)
+    name = stringInfo['ProductName'] ?? stringInfo['FileDescription']
+    if (name === undefined) {
+      throw new Error(`No addonName found`)
     }
   }
 
-  // this has to be last, so we don't override valid stuff with invalid
-  const release: Release = {
+  // return release
+  return {
     id,
-    name: addonName,
-    version: addonVersion,
-    version_str: addonVersionStr,
+    name,
+    version,
+    version_str: versionStr,
     download_url: downloadUrl
   }
-  return release
 }

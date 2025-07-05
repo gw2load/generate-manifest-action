@@ -31302,12 +31302,18 @@ const host = unionType([
 const installation = objectType({
     mode: installMode
 });
-const addon = objectType({
+const releaseInfo = objectType({
+    release: release.optional().readonly(),
+    prerelease: release.optional().readonly()
+});
+const addonConfig = objectType({
     package: pkg,
     host,
-    installation,
-    release: release.optional(),
-    prerelease: release.optional(),
+    installation
+});
+const addon = objectType({
+    ...addonConfig.shape,
+    ...releaseInfo.shape,
     addon_names: arrayType(stringType()).optional()
 });
 const manifest$1 = objectType({
@@ -36259,7 +36265,7 @@ function isGreater(a, b) {
     }
     return false;
 }
-async function createReleaseFromArchive(addon, fileBuffer, id, downloadUrl) {
+async function createReleaseFromArchive(fileBuffer, id, downloadUrl) {
     const unzipped = unzipSync(new Uint8Array(fileBuffer));
     const files = Object.keys(unzipped)
         .filter((value) => value.endsWith('.dll'))
@@ -36277,7 +36283,7 @@ async function createReleaseFromArchive(addon, fileBuffer, id, downloadUrl) {
             }
             // create release
             const subFileBuffer = await file.arrayBuffer();
-            return createReleaseFromDll(addon, subFileBuffer, id, downloadUrl);
+            return createReleaseFromDll(subFileBuffer, id, downloadUrl);
         }
         catch (e_1) {
             env_1.error = e_1;
@@ -36289,7 +36295,7 @@ async function createReleaseFromArchive(addon, fileBuffer, id, downloadUrl) {
                 await result_1;
         }
     }
-    return undefined;
+    throw new Error(`no valid release assets found in archive`);
 }
 async function saveToTmp(file) {
     // generate tmp file name
@@ -36317,71 +36323,72 @@ function checkDllExports(filepath) {
         return false;
     }
 }
-function createReleaseFromDll(addon, fileBuffer, id, downloadUrl) {
+function createReleaseFromDll(fileBuffer, id, downloadUrl) {
+    // parse dll
     const fileParser = new libExports.PeFileParser();
     fileParser.parseBytes(fileBuffer);
     const versionInfoResource = fileParser.getVersionInfoResources();
     if (versionInfoResource === undefined) {
-        throw new Error(`No versionInfoResource found for addon ${addon.package.name}`);
+        throw new Error(`No versionInfoResource found`);
     }
     const vsInfoSub = Object.values(versionInfoResource)[0];
     if (vsInfoSub === undefined) {
-        throw new Error(`no vsInfoSub found for addon ${addon.package.name}`);
+        throw new Error(`no vsInfoSub found`);
     }
     const versionInfo = Object.values(vsInfoSub)[0];
     if (versionInfo === undefined) {
-        throw new Error(`No versionInfo found for ${addon.package.name}`);
+        throw new Error(`No versionInfo found`);
     }
     const fixedFileInfo = versionInfo.getFixedFileInfo();
     if (fixedFileInfo === undefined) {
-        throw new Error(`No fileInfo found for ${addon.package.name}`);
+        throw new Error(`No fileInfo found`);
     }
-    let addonVersion = [
+    // read version
+    let version = [
         (fixedFileInfo.getStruct().dwFileVersionMS >> 16) & 0xffff,
         fixedFileInfo.getStruct().dwFileVersionMS & 0xffff,
         (fixedFileInfo.getStruct().dwFileVersionLS >> 16) & 0xffff,
         fixedFileInfo.getStruct().dwFileVersionLS & 0xffff
     ];
-    if (addonVersion.every((value) => value === 0)) {
-        addonVersion = [
+    if (version.every((value) => value === 0)) {
+        version = [
             (fixedFileInfo.getStruct().dwProductVersionMS >> 16) & 0xffff,
             fixedFileInfo.getStruct().dwProductVersionMS & 0xffff,
             (fixedFileInfo.getStruct().dwProductVersionLS >> 16) & 0xffff,
             fixedFileInfo.getStruct().dwProductVersionLS & 0xffff
         ];
     }
-    if (addonVersion.every((value) => value === 0)) {
-        throw new Error(`no addonVersion found for addon ${addon.package.name}`);
+    if (version.every((value) => value === 0)) {
+        throw new Error(`no addonVersion found`);
     }
     // read version string
     // console.log(versionInfo)
-    let addonVersionStr = undefined;
-    let addonName = undefined;
+    let versionStr = undefined;
+    let name = undefined;
     const stringFileInfo = versionInfo.getStringFileInfo();
     if (stringFileInfo === undefined) {
-        throw new Error(`No StringFileInfo found for addon ${addon.package.name}`);
+        throw new Error(`No StringFileInfo found`);
     }
     else {
         const stringInfo = Object.values(stringFileInfo.getStringTables())[0].toObject();
-        addonVersionStr =
+        versionStr =
             stringInfo['FileVersion'] ??
                 stringInfo['ProductVersion'] ??
-                addonVersion.join('.');
+                version.join('.');
         // read name
-        addonName = stringInfo['ProductName'] ?? stringInfo['FileDescription'];
-        if (addonName === undefined) {
-            throw new Error(`No addonName found for addon ${addon.package.name}`);
+        name = stringInfo['ProductName'] ?? stringInfo['FileDescription'];
+        if (name === undefined) {
+            throw new Error(`No addonName found`);
         }
     }
-    // this has to be last, so we don't override valid stuff with invalid
-    const release = {
+    // return release
+    return {
         id,
-        name: addonName,
-        version: addonVersion,
-        version_str: addonVersionStr,
+        name,
+        version,
+        version_str: versionStr,
         download_url: downloadUrl
     };
-    return release;
 }
 
 var github = {};
@@ -40346,29 +40353,33 @@ if (token === '' && envToken !== undefined) {
     token = envToken;
 }
 const octokit = githubExports.getOctokit(token);
-async function updateFromGithub(addon, host) {
+async function updateFromGithub(existing, host) {
     const [owner, repo] = host.url.split('/');
+    // get list of all releases
     const releases = await octokit.rest.repos.listReleases({
         owner,
         repo
     });
+    // try to get latest release
+    // we could use the list of releases for this, but if the last 100 releases are prereleases/drafts we would not find one.
+    // this guarantees we always find a release if one exists
     const latestRelease = await octokit.rest.repos.getLatestRelease({
         owner,
         repo
     });
-    addon.release = await findAndCreateRelease(addon, addon.release, latestRelease.data);
+    const release = await findAndCreateRelease(existing?.release, latestRelease.data);
     // find pre-release until latest release
-    for (const release of releases.data) {
-        if (release.prerelease) {
-            addon.prerelease = await findAndCreateRelease(addon, addon.prerelease, release);
-            break;
+    for (const githubRelease of releases.data) {
+        if (githubRelease.prerelease && !githubRelease.draft) {
+            const prerelease = await findAndCreateRelease(existing?.prerelease, githubRelease);
+            return { release, prerelease };
         }
-        else if (release.tag_name === latestRelease.data.tag_name) {
-            // TODO: if prerelease is set, we removed it
-            addon.prerelease = undefined;
+        else if (githubRelease.id === latestRelease?.data.id) {
+            // no prerelease found that is newer than release
             break;
         }
     }
+    return { release };
 }
 /**
  *
@@ -40378,12 +40389,12 @@ async function updateFromGithub(addon, host) {
  * @return oldRelease when the release didn't change or the new release
  * @throws Error when no valid release asset was found
  */
-async function findAndCreateRelease(addon, oldRelease, githubRelease) {
+async function findAndCreateRelease(oldRelease, githubRelease) {
     if (checkAssetChanged(oldRelease, githubRelease)) {
         let found = false;
         for (let i = 0; i < githubRelease.assets.length; i++) {
             const asset = githubRelease.assets[i];
-            const release = await downloadFromGithub(addon, asset);
+            const release = await downloadFromGithub(asset);
             if (release !== undefined) {
                 release.asset_index = i;
                 if (!oldRelease || isGreater(release.version, oldRelease.version)) {
@@ -40394,12 +40405,12 @@ async function findAndCreateRelease(addon, oldRelease, githubRelease) {
             }
         }
         if (!found) {
-            throw new Error(`no valid release asset found for addon ${addon.package.name}`);
+            throw new Error(`no valid release asset found`);
         }
     }
     return oldRelease;
 }
-async function downloadFromGithub(addon, asset) {
+async function downloadFromGithub(asset) {
     const file = await fetch(asset.browser_download_url);
     if (!file.ok) {
         throw new Error(`Unable to download asset: ${asset.browser_download_url}`);
@@ -40407,16 +40418,13 @@ async function downloadFromGithub(addon, asset) {
     const fileBuffer = await file.arrayBuffer();
     let release;
     if (asset.name.endsWith('.dll')) {
-        release = createReleaseFromDll(addon, fileBuffer, asset.id.toString(), asset.browser_download_url);
+        release = createReleaseFromDll(fileBuffer, asset.id.toString(), asset.browser_download_url);
     }
     else if (asset.name.endsWith('.zip')) {
-        release = await createReleaseFromArchive(addon, fileBuffer, asset.id.toString(), asset.browser_download_url);
+        release = await createReleaseFromArchive(fileBuffer, asset.id.toString(), asset.browser_download_url);
     }
     else {
         release = undefined;
-    }
-    if (release !== undefined) {
-        addAddonName(addon, release.name);
     }
     return release;
 }
@@ -40428,33 +40436,27 @@ function checkAssetChanged(release, githubRelease) {
     return last_asset === undefined || last_asset.id.toString() !== release.id;
 }
 
-async function updateStandalone(addon, host) {
-    if (!host.version_url) {
-        throw new Error(`no version_url for addon ${addon.package.name}`);
-    }
-    addon.release = await downloadAndCheckVersion(addon, addon.release, host.version_url, host.url);
+async function updateStandalone(existing, host) {
+    const release = await downloadAndCheckVersion(existing.release, host.version_url, host.url);
     // only run when configured and release was found
-    if (host.prerelease_url && host.prerelease_version_url && addon.release) {
-        const prerelease = await downloadAndCheckVersion(addon, addon.prerelease, host.prerelease_version_url, host.prerelease_url);
+    if (host.prerelease_url && host.prerelease_version_url && release) {
+        const prerelease = await downloadAndCheckVersion(existing.prerelease, host.prerelease_version_url, host.prerelease_url);
         // check if prerelease is later than release, if not, remove prerelease
         if (prerelease) {
-            if (isGreater(prerelease.version, addon.release.version)) {
-                // TODO: new release was found die zweite
-                addon.prerelease = prerelease;
-                return;
+            if (isGreater(prerelease.version, release.version)) {
+                return { release, prerelease };
             }
         }
     }
-    // TODO: if prerelease is set, we removed it
-    addon.prerelease = undefined;
+    return { release };
 }
-async function downloadAndCheckVersion(addon, oldRelease, version_url, host_url) {
+async function downloadAndCheckVersion(oldRelease, version_url, host_url) {
     // load version
     const versionRes = await fetch(version_url, {
         signal: AbortSignal.timeout(10_000)
     });
-    if (versionRes.status !== 200) {
-        throw new Error(`version response status for addon ${addon.package.name}: ${versionRes.status}`);
+    if (!versionRes.ok) {
+        throw new Error(`fetching version failed (${versionRes.status})`);
     }
     // create hash of version response
     const id = createHash('sha256')
@@ -40462,10 +40464,7 @@ async function downloadAndCheckVersion(addon, oldRelease, version_url, host_url)
         .digest('hex');
     // only download addon if its new or the id has changed
     if (!oldRelease || oldRelease.id !== id) {
-        const release = await downloadStandalone(addon, host_url, id);
-        if (!release) {
-            throw new Error(`no release asset found for addon ${addon.package.name}`);
-        }
+        const release = await createRelease(host_url, id);
         // ensure the new release is actually newer
         if (!oldRelease || isGreater(release.version, oldRelease.version)) {
             return release;
@@ -40473,26 +40472,22 @@ async function downloadAndCheckVersion(addon, oldRelease, version_url, host_url)
     }
     return oldRelease;
 }
-async function downloadStandalone(addon, host_url, id) {
+async function createRelease(host_url, id) {
+    // download addon
     const file = await fetch(host_url, { signal: AbortSignal.timeout(10_000) });
     if (!file.ok) {
         throw new Error(`Unable to download asset ${host_url}`);
     }
+    // read addon to memory
     const fileBuffer = await file.arrayBuffer();
-    let release;
+    // handle addon depending on file extension
     if (file.url.endsWith('.dll')) {
-        release = createReleaseFromDll(addon, fileBuffer, id, file.url);
+        return createReleaseFromDll(fileBuffer, id, file.url);
     }
     else if (file.url.endsWith('.zip')) {
-        release = await createReleaseFromArchive(addon, fileBuffer, id, file.url);
+        return await createReleaseFromArchive(fileBuffer, id, file.url);
     }
-    else {
-        throw new Error(`given host url has not supported file ending ${host_url}`);
-    }
-    if (release !== undefined) {
-        addAddonName(addon, release.name);
-    }
-    return release;
+    throw new Error(`given host url has not supported file ending ${host_url}`);
 }
 
 /*!
@@ -41598,22 +41593,31 @@ function stringify(obj, { maxDepth = 1000, numbersAsFloat = false } = {}) {
  */
 var toml = { parse, stringify, TomlDate, TomlError };
 
+/** Add addon name to addon if not already known */
 function addAddonName(addon, name) {
     if (addon.addon_names === undefined) {
         addon.addon_names = [name];
     }
     else {
         if (!addon.addon_names.includes(name)) {
-            addon.addon_names = addon.addon_names.concat(name);
+            addon.addon_names.push(name);
         }
     }
 }
 async function update(addon) {
-    if ('github' in addon.host) {
-        await updateFromGithub(addon, addon.host.github);
+    // get releases
+    const { release, prerelease } = 'github' in addon.host
+        ? await updateFromGithub(addon, addon.host.github)
+        : await updateStandalone(addon, addon.host.standalone);
+    // mutate addon (the update functions above will return the old release if no new one was found)
+    addon.release = release;
+    addon.prerelease = prerelease;
+    // add known addon names from releases
+    if (release) {
+        addAddonName(addon, release.name);
     }
-    else if ('standalone' in addon.host) {
-        await updateStandalone(addon, addon.host.standalone);
+    if (prerelease) {
+        addAddonName(addon, prerelease.name);
     }
 }
 /** The main function for the action. */
@@ -41664,7 +41668,7 @@ async function generateManifest({ addonsPath, manifestPath }) {
         const filePath = path.join(addonsPath, fileName);
         const tomlContent = fs$1.readFileSync(filePath);
         try {
-            const config = addon.parse(toml.parse(tomlContent.toString()));
+            const config = addonConfig.parse(toml.parse(tomlContent.toString()));
             addons.push(config);
             addonFiles.set(config.package.id, filePath);
         }
