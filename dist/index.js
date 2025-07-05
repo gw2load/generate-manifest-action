@@ -36269,8 +36269,11 @@ function isGreater(a, b) {
 async function createReleaseFromArchive(fileBuffer, id, downloadUrl) {
     const unzipped = unzipSync(new Uint8Array(fileBuffer));
     const files = Object.keys(unzipped)
-        .filter((value) => value.endsWith('.dll'))
-        .map((value) => new File([unzipped[value]], value));
+        .filter((name) => name.endsWith('.dll'))
+        .map((name) => new File([unzipped[name]], name));
+    if (files.length === 0) {
+        throw new Error('Archive does not contain any dll files');
+    }
     for (const file of files) {
         const env_1 = { stack: [], error: void 0, hasError: false };
         try {
@@ -36280,11 +36283,18 @@ async function createReleaseFromArchive(fileBuffer, id, downloadUrl) {
             , true);
             // check if dll has exports, skip if not
             if (!checkDllExports(tempFile.filePath)) {
+                console.log(`${file.name}: Missing exports`);
                 continue;
             }
-            // create release
+            // get file buffer
             const subFileBuffer = await file.arrayBuffer();
-            return createReleaseFromDll(subFileBuffer, id, downloadUrl);
+            // try to create a release, but only log errors as another file might be valid
+            try {
+                return createReleaseFromDll(subFileBuffer, id, downloadUrl);
+            }
+            catch (error) {
+                console.log(`${file.name}:`, error);
+            }
         }
         catch (e_1) {
             env_1.error = e_1;
@@ -36296,7 +36306,7 @@ async function createReleaseFromArchive(fileBuffer, id, downloadUrl) {
                 await result_1;
         }
     }
-    throw new Error(`no valid release assets found in archive`);
+    throw new Error(`No valid release assets found in archive`);
 }
 async function saveToTmp(file) {
     // generate tmp file name
