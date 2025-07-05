@@ -40354,24 +40354,27 @@ if (token === '' && envToken !== undefined) {
 }
 const octokit = githubExports.getOctokit(token);
 async function updateFromGithub(existing, host) {
-    const [owner, repo] = host.url.split('/');
+    // parse repository
+    const repository = parseRepository(host.url);
     // get list of all releases
-    const releases = await octokit.rest.repos.listReleases({
-        owner,
-        repo
-    });
+    const releases = await octokit.rest.repos.listReleases(repository);
     // try to get latest release
     // we could use the list of releases for this, but if the last 100 releases are prereleases/drafts we would not find one.
     // this guarantees we always find a release if one exists
-    const latestRelease = await octokit.rest.repos.getLatestRelease({
-        owner,
-        repo
-    });
-    const release = await findAndCreateRelease(existing?.release, latestRelease.data);
+    let latestRelease;
+    try {
+        latestRelease = await octokit.rest.repos.getLatestRelease(repository);
+    }
+    catch {
+        console.log(`Could not find latest release`);
+    }
+    const release = latestRelease
+        ? await findAndCreateRelease(existing?.release, latestRelease.data, repository)
+        : undefined;
     // find pre-release until latest release
     for (const githubRelease of releases.data) {
         if (githubRelease.prerelease && !githubRelease.draft) {
-            const prerelease = await findAndCreateRelease(existing?.prerelease, githubRelease);
+            const prerelease = await findAndCreateRelease(existing?.prerelease, githubRelease, repository);
             return { release, prerelease };
         }
         else if (githubRelease.id === latestRelease?.data.id) {
@@ -40389,12 +40392,12 @@ async function updateFromGithub(existing, host) {
  * @return oldRelease when the release didn't change or the new release
  * @throws Error when no valid release asset was found
  */
-async function findAndCreateRelease(oldRelease, githubRelease) {
+async function findAndCreateRelease(oldRelease, githubRelease, repository) {
     if (checkAssetChanged(oldRelease, githubRelease)) {
         let found = false;
         for (let i = 0; i < githubRelease.assets.length; i++) {
             const asset = githubRelease.assets[i];
-            const release = await downloadFromGithub(asset);
+            const release = await downloadFromGithub(asset, repository);
             if (release !== undefined) {
                 release.asset_index = i;
                 if (!oldRelease || isGreater(release.version, oldRelease.version)) {
@@ -40410,12 +40413,16 @@ async function findAndCreateRelease(oldRelease, githubRelease) {
     }
     return oldRelease;
 }
-async function downloadFromGithub(asset) {
-    const file = await fetch(asset.browser_download_url);
-    if (!file.ok) {
-        throw new Error(`Unable to download asset: ${asset.browser_download_url}`);
-    }
-    const fileBuffer = await file.arrayBuffer();
+async function downloadFromGithub(asset, repository) {
+    const response = await octokit.rest.repos.getReleaseAsset({
+        ...repository,
+        asset_id: asset.id,
+        headers: {
+            accept: 'application/octet-stream'
+        }
+    });
+    // need to cast data, as typescript doesn't know about `accept: application/octet-stream`
+    const fileBuffer = response.data;
     let release;
     if (asset.name.endsWith('.dll')) {
         release = createReleaseFromDll(fileBuffer, asset.id.toString(), asset.browser_download_url);
@@ -40434,6 +40441,10 @@ function checkAssetChanged(release, githubRelease) {
     }
     const last_asset = githubRelease.assets[release.asset_index];
     return last_asset === undefined || last_asset.id.toString() !== release.id;
+}
+function parseRepository(repsitory) {
+    const [owner, repo] = repsitory.split('/');
+    return { owner, repo };
 }
 
 async function updateStandalone(existing, host) {
