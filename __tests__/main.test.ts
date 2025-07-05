@@ -27,7 +27,8 @@ describe('action', () => {
   it('local test', async () => {
     const manifest = await main.generateManifest({
       addonsPath: path.resolve(dirname, 'addons'),
-      manifestPath: undefined
+      manifestPath: undefined,
+      loaderRepo: undefined
     })
 
     expect(manifest.data.addons).toHaveLength(4)
@@ -37,7 +38,8 @@ describe('action', () => {
   it('should merge (legacy array) manifest', async () => {
     const manifest = await main.generateManifest({
       addonsPath: path.resolve(dirname, 'empty'),
-      manifestPath: path.resolve(dirname, 'manifest-array.json')
+      manifestPath: path.resolve(dirname, 'manifest-array.json'),
+      loaderRepo: undefined
     })
 
     expect(manifest.data.addons).toHaveLength(0)
@@ -50,7 +52,8 @@ describe('action', () => {
   it('should merge manifest', async () => {
     const manifest = await main.generateManifest({
       addonsPath: path.resolve(dirname, 'empty'),
-      manifestPath: path.resolve(dirname, 'manifest.json')
+      manifestPath: path.resolve(dirname, 'manifest.json'),
+      loaderRepo: undefined
     })
 
     expect(manifest.data.addons).toHaveLength(0)
@@ -63,7 +66,8 @@ describe('action', () => {
   it('should fail if manifest is invalid', async () => {
     const manifestPromise = main.generateManifest({
       addonsPath: path.resolve(dirname, 'empty'),
-      manifestPath: path.resolve(dirname, 'invalid.json')
+      manifestPath: path.resolve(dirname, 'invalid.json'),
+      loaderRepo: undefined
     })
 
     await expect(manifestPromise).rejects.toHaveProperty(
