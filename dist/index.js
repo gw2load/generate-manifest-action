@@ -27376,20 +27376,33 @@ function cleanRegex(source) {
 }
 function floatSafeRemainder(val, step) {
     const valDecCount = (val.toString().split(".")[1] || "").length;
-    const stepDecCount = (step.toString().split(".")[1] || "").length;
+    const stepString = step.toString();
+    let stepDecCount = (stepString.split(".")[1] || "").length;
+    if (stepDecCount === 0 && /\d?e-\d?/.test(stepString)) {
+        const match = stepString.match(/\d?e-(\d?)/);
+        if (match?.[1]) {
+            stepDecCount = Number.parseInt(match[1]);
+        }
+    }
     const decCount = valDecCount > stepDecCount ? valDecCount : stepDecCount;
     const valInt = Number.parseInt(val.toFixed(decCount).replace(".", ""));
     const stepInt = Number.parseInt(step.toFixed(decCount).replace(".", ""));
     return (valInt % stepInt) / 10 ** decCount;
 }
+const EVALUATING = Symbol("evaluating");
 function defineLazy(object, key, getter) {
+    let value = undefined;
     Object.defineProperty(object, key, {
         get() {
-            {
-                const value = getter();
-                object[key] = value;
-                return value;
+            if (value === EVALUATING) {
+                // Circular reference detected, return undefined to break the cycle
+                return undefined;
             }
+            if (value === undefined) {
+                value = EVALUATING;
+                value = getter();
+            }
+            return value;
         },
         set(v) {
             Object.defineProperty(object, key, {
@@ -27636,6 +27649,7 @@ function required(Class, schema, mask) {
     });
     return clone(schema, def);
 }
+// invalid_type | too_big | too_small | invalid_format | not_multiple_of | unrecognized_keys | invalid_union | invalid_key | invalid_element | invalid_value | custom
 function aborted(x, startIndex = 0) {
     for (let i = startIndex; i < x.issues.length; i++) {
         if (x.issues[i]?.continue !== true) {
@@ -27855,9 +27869,8 @@ const cidrv6 = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?:
 const base64 = /^$|^(?:[0-9a-zA-Z+/]{4})*(?:(?:[0-9a-zA-Z+/]{2}==)|(?:[0-9a-zA-Z+/]{3}=))?$/;
 const base64url = /^[A-Za-z0-9_-]*$/;
 // based on https://stackoverflow.com/questions/106179/regular-expression-to-match-dns-hostname-or-ip-address
-// export const hostname: RegExp =
-//   /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$/;
-const hostname = /^([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+$/;
+// export const hostname: RegExp = /^([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+$/;
+const hostname = /^(?=.{1,253}\.?$)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[-0-9a-zA-Z]{0,61}[0-9a-zA-Z])?)*\.?$/;
 // https://blog.stevenlevithan.com/archives/validate-phone-number#r4-3 (regex sans spaces)
 const e164 = /^\+(?:[0-9]){6,14}[0-9]$/;
 // const dateSource = `((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-((0[13578]|1[02])-(0[1-9]|[12]\\d|3[01])|(0[469]|11)-(0[1-9]|[12]\\d|30)|(02)-(0[1-9]|1\\d|2[0-8])))`;
@@ -27883,8 +27896,9 @@ function datetime$1(args) {
     const opts = ["Z"];
     if (args.local)
         opts.push("");
+    // if (args.offset) opts.push(`([+-]\\d{2}:\\d{2})`);
     if (args.offset)
-        opts.push(`([+-]\\d{2}:\\d{2})`);
+        opts.push(`([+-](?:[01]\\d|2[0-3]):[0-5]\\d)`);
     const timeRegex = `${time}(?:${opts.join("|")})`;
     return new RegExp(`^${dateSource}T(?:${timeRegex})$`);
 }
@@ -28023,6 +28037,7 @@ const $ZodCheckNumberFormat = /*@__PURE__*/ $constructor("$ZodCheckNumberFormat"
                     expected: origin,
                     format: def.format,
                     code: "invalid_type",
+                    continue: false,
                     input,
                     inst,
                 });
@@ -28345,7 +28360,7 @@ class Doc {
 const version$1 = {
     major: 4,
     minor: 0,
-    patch: 10,
+    patch: 14,
 };
 
 const $ZodType = /*@__PURE__*/ $constructor("$ZodType", (inst, def) => {
@@ -29050,7 +29065,12 @@ const $ZodUnion = /*@__PURE__*/ $constructor("$ZodUnion", (inst, def) => {
         }
         return undefined;
     });
+    const single = def.options.length === 1;
+    const first = def.options[0]._zod.run;
     inst._zod.parse = (payload, ctx) => {
+        if (single) {
+            return first(payload, ctx);
+        }
         let async = false;
         const results = [];
         for (const option of def.options) {
@@ -29174,10 +29194,10 @@ const $ZodTuple = /*@__PURE__*/ $constructor("$ZodTuple", (inst, def) => {
             const tooSmall = input.length < optStart - 1;
             if (tooBig || tooSmall) {
                 payload.issues.push({
+                    ...(tooBig ? { code: "too_big", maximum: items.length } : { code: "too_small", minimum: items.length }),
                     input,
                     inst,
                     origin: "array",
-                    ...(tooBig ? { code: "too_big", maximum: items.length } : { code: "too_small", minimum: items.length }),
                 });
                 return payload;
             }
@@ -29290,6 +29310,12 @@ const $ZodTransform = /*@__PURE__*/ $constructor("$ZodTransform", (inst, def) =>
         return payload;
     };
 });
+function handleOptionalResult(result, input) {
+    if (result.issues.length && input === undefined) {
+        return { issues: [], value: undefined };
+    }
+    return result;
+}
 const $ZodOptional = /*@__PURE__*/ $constructor("$ZodOptional", (inst, def) => {
     $ZodType.init(inst, def);
     inst._zod.optin = "optional";
@@ -29303,7 +29329,10 @@ const $ZodOptional = /*@__PURE__*/ $constructor("$ZodOptional", (inst, def) => {
     });
     inst._zod.parse = (payload, ctx) => {
         if (def.innerType._zod.optin === "optional") {
-            return def.innerType._zod.run(payload, ctx);
+            const result = def.innerType._zod.run(payload, ctx);
+            if (result instanceof Promise)
+                return result.then((r) => handleOptionalResult(r, payload.value));
+            return handleOptionalResult(result, payload.value);
         }
         if (payload.value === undefined) {
             return payload;
@@ -29957,13 +29986,6 @@ function _array(Class, element, params) {
         ...normalizeParams(params),
     });
 }
-// export function _refine<T>(
-//   Class: util.SchemaClass<schemas.$ZodCustom>,
-//   fn: (arg: NoInfer<T>) => util.MaybeAsync<unknown>,
-//   _params: string | $ZodCustomParams = {}
-// ): checks.$ZodCheck<T> {
-//   return _custom(Class, fn, _params);
-// }
 // same as _custom but defaults to abort:false
 function _refine(Class, fn, _params) {
     const schema = new Class({
@@ -29973,6 +29995,36 @@ function _refine(Class, fn, _params) {
         ...normalizeParams(_params),
     });
     return schema;
+}
+function _superRefine(fn) {
+    const ch = _check((payload) => {
+        payload.addIssue = (issue$1) => {
+            if (typeof issue$1 === "string") {
+                payload.issues.push(issue(issue$1, payload.value, ch._zod.def));
+            }
+            else {
+                // for Zod 3 backwards compatibility
+                const _issue = issue$1;
+                if (_issue.fatal)
+                    _issue.continue = false;
+                _issue.code ?? (_issue.code = "custom");
+                _issue.input ?? (_issue.input = payload.value);
+                _issue.inst ?? (_issue.inst = ch);
+                _issue.continue ?? (_issue.continue = !ch._zod.def.abort);
+                payload.issues.push(issue(_issue));
+            }
+        };
+        return fn(payload.value, payload);
+    });
+    return ch;
+}
+function _check(fn, params) {
+    const ch = new $ZodCheck({
+        check: "custom",
+        ...normalizeParams(params),
+    });
+    ch._zod.check = fn;
+    return ch;
 }
 
 const ZodISODateTime = /*@__PURE__*/ $constructor("ZodISODateTime", (inst, def) => {
@@ -30629,40 +30681,12 @@ const ZodCustom = /*@__PURE__*/ $constructor("ZodCustom", (inst, def) => {
     $ZodCustom.init(inst, def);
     ZodType.init(inst, def);
 });
-// custom checks
-function check(fn) {
-    const ch = new $ZodCheck({
-        check: "custom",
-        // ...util.normalizeParams(params),
-    });
-    ch._zod.check = fn;
-    return ch;
-}
 function refine(fn, _params = {}) {
     return _refine(ZodCustom, fn, _params);
 }
 // superRefine
 function superRefine(fn) {
-    const ch = check((payload) => {
-        payload.addIssue = (issue$1) => {
-            if (typeof issue$1 === "string") {
-                payload.issues.push(issue(issue$1, payload.value, ch._zod.def));
-            }
-            else {
-                // for Zod 3 backwards compatibility
-                const _issue = issue$1;
-                if (_issue.fatal)
-                    _issue.continue = false;
-                _issue.code ?? (_issue.code = "custom");
-                _issue.input ?? (_issue.input = payload.value);
-                _issue.inst ?? (_issue.inst = ch);
-                _issue.continue ?? (_issue.continue = !ch._zod.def.abort);
-                payload.issues.push(issue(_issue));
-            }
-        };
-        return fn(payload.value, payload);
-    });
-    return ch;
+    return _superRefine(fn);
 }
 
 // Zod 3 compat layer
