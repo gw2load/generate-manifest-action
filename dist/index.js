@@ -27414,6 +27414,9 @@ function defineLazy(object, key, getter) {
         configurable: true,
     });
 }
+function objectClone(obj) {
+    return Object.create(Object.getPrototypeOf(obj), Object.getOwnPropertyDescriptors(obj));
+}
 function assignProp(target, prop, value) {
     Object.defineProperty(target, prop, {
         value,
@@ -27467,6 +27470,11 @@ function isPlainObject$2(o) {
         return false;
     }
     return true;
+}
+function shallowClone(o) {
+    if (isPlainObject$2(o))
+        return { ...o };
+    return o;
 }
 const propertyKeyTypes = new Set(["string", "number", "symbol"]);
 function escapeRegex(str) {
@@ -28360,7 +28368,7 @@ class Doc {
 const version$1 = {
     major: 4,
     minor: 0,
-    patch: 14,
+    patch: 17,
 };
 
 const $ZodType = /*@__PURE__*/ $constructor("$ZodType", (inst, def) => {
@@ -28883,7 +28891,7 @@ const $ZodObject = /*@__PURE__*/ $constructor("$ZodObject", (inst, def) => {
     const _normalized = cached(() => {
         const keys = Object.keys(def.shape);
         for (const k of keys) {
-            if (!(def.shape[k] instanceof $ZodType)) {
+            if (!def.shape[k]._zod.traits.has("$ZodType")) {
                 throw new Error(`Invalid element at key "${k}": expected a Zod schema`);
             }
         }
@@ -30423,7 +30431,7 @@ function object(shape, params) {
     const def = {
         type: "object",
         get shape() {
-            assignProp(this, "shape", { ...shape });
+            assignProp(this, "shape", shape ? objectClone(shape) : {});
             return this.shape;
         },
         ...normalizeParams(params),
@@ -30609,7 +30617,7 @@ function _default(innerType, defaultValue) {
         type: "default",
         innerType: innerType,
         get defaultValue() {
-            return typeof defaultValue === "function" ? defaultValue() : defaultValue;
+            return typeof defaultValue === "function" ? defaultValue() : shallowClone(defaultValue);
         },
     });
 }
@@ -30623,7 +30631,7 @@ function prefault(innerType, defaultValue) {
         type: "prefault",
         innerType: innerType,
         get defaultValue() {
-            return typeof defaultValue === "function" ? defaultValue() : defaultValue;
+            return typeof defaultValue === "function" ? defaultValue() : shallowClone(defaultValue);
         },
     });
 }
@@ -40444,6 +40452,12 @@ class TomlError extends Error {
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+function isEscaped(str, ptr) {
+    let i = 0;
+    while (str[ptr - ++i] === '\\')
+        ;
+    return --i && (i % 2);
+}
 function indexOfNewline(str, start = 0, end = str.length) {
     let idx = str.indexOf('\n', start);
     if (str[idx - 1] === '\r')
@@ -40504,7 +40518,7 @@ function getStringEnd(str, seek) {
     seek += target.length - 1;
     do
         seek = str.indexOf(target, ++seek);
-    while (seek > -1 && first !== "'" && str[seek - 1] === '\\' && (str[seek - 2] !== '\\' || str[seek - 3] === '\\'));
+    while (seek > -1 && first !== "'" && isEscaped(str, seek));
     if (seek > -1) {
         seek += target.length;
         if (target.length > 1) {
