@@ -1122,11 +1122,11 @@ function requireConstants$4 () {
 	return constants$4;
 }
 
-var util$7;
+var util$6;
 var hasRequiredUtil$6;
 
 function requireUtil$6 () {
-	if (hasRequiredUtil$6) return util$7;
+	if (hasRequiredUtil$6) return util$6;
 	hasRequiredUtil$6 = 1;
 
 	const assert = require$$0$3;
@@ -1612,7 +1612,7 @@ function requireUtil$6 () {
 	const kEnumerableProperty = Object.create(null);
 	kEnumerableProperty.enumerable = true;
 
-	util$7 = {
+	util$6 = {
 	  kEnumerableProperty,
 	  nop,
 	  isDisturbed,
@@ -1649,7 +1649,7 @@ function requireUtil$6 () {
 	  nodeHasAutoSelectFamily: nodeMajor > 18 || (nodeMajor === 18 && nodeMinor >= 13),
 	  safeHTTPMethods: ['GET', 'HEAD', 'OPTIONS', 'TRACE']
 	};
-	return util$7;
+	return util$6;
 }
 
 var timers;
@@ -3591,11 +3591,11 @@ function requireGlobal$1 () {
 	return global$2;
 }
 
-var util$6;
+var util$5;
 var hasRequiredUtil$5;
 
 function requireUtil$5 () {
-	if (hasRequiredUtil$5) return util$6;
+	if (hasRequiredUtil$5) return util$5;
 	hasRequiredUtil$5 = 1;
 
 	const { redirectStatusSet, referrerPolicySet: referrerPolicyTokens, badPortsSet } = requireConstants$3();
@@ -4692,7 +4692,7 @@ function requireUtil$5 () {
 	 */
 	const hasOwn = Object.hasOwn || ((dict, key) => Object.prototype.hasOwnProperty.call(dict, key));
 
-	util$6 = {
+	util$5 = {
 	  isAborted,
 	  isCancelled,
 	  createDeferredPromise,
@@ -4739,7 +4739,7 @@ function requireUtil$5 () {
 	  normalizeMethodRecord,
 	  parseMetadata
 	};
-	return util$6;
+	return util$5;
 }
 
 var symbols$3;
@@ -12309,11 +12309,11 @@ function requireReadable () {
 	return readable;
 }
 
-var util$5;
+var util$4;
 var hasRequiredUtil$4;
 
 function requireUtil$4 () {
-	if (hasRequiredUtil$4) return util$5;
+	if (hasRequiredUtil$4) return util$4;
 	hasRequiredUtil$4 = 1;
 	const assert = require$$0$3;
 	const {
@@ -12360,8 +12360,8 @@ function requireUtil$4 () {
 	  process.nextTick(callback, new ResponseStatusCodeError(`Response status code ${statusCode}${statusMessage ? `: ${statusMessage}` : ''}`, statusCode, headers));
 	}
 
-	util$5 = { getResolveErrorBodyCallback };
-	return util$5;
+	util$4 = { getResolveErrorBodyCallback };
+	return util$4;
 }
 
 var abortSignal;
@@ -19598,11 +19598,11 @@ function requireEncoding () {
 	return encoding;
 }
 
-var util$4;
+var util$3;
 var hasRequiredUtil$3;
 
 function requireUtil$3 () {
-	if (hasRequiredUtil$3) return util$4;
+	if (hasRequiredUtil$3) return util$3;
 	hasRequiredUtil$3 = 1;
 
 	const {
@@ -19990,12 +19990,12 @@ function requireUtil$3 () {
 	  }, new Uint8Array(size))
 	}
 
-	util$4 = {
+	util$3 = {
 	  staticPropertyDescriptors,
 	  readOperation,
 	  fireAProgressEvent
 	};
-	return util$4;
+	return util$3;
 }
 
 var filereader;
@@ -20363,11 +20363,11 @@ function requireSymbols$1 () {
 	return symbols$1;
 }
 
-var util$3;
+var util$2;
 var hasRequiredUtil$2;
 
 function requireUtil$2 () {
-	if (hasRequiredUtil$2) return util$3;
+	if (hasRequiredUtil$2) return util$2;
 	hasRequiredUtil$2 = 1;
 
 	const assert = require$$0$3;
@@ -20413,11 +20413,11 @@ function requireUtil$2 () {
 	  return values
 	}
 
-	util$3 = {
+	util$2 = {
 	  urlEquals,
 	  fieldValues
 	};
-	return util$3;
+	return util$2;
 }
 
 var cache;
@@ -21438,11 +21438,11 @@ function requireConstants$1 () {
 	return constants$1;
 }
 
-var util$2;
+var util$1;
 var hasRequiredUtil$1;
 
 function requireUtil$1 () {
-	if (hasRequiredUtil$1) return util$2;
+	if (hasRequiredUtil$1) return util$1;
 	hasRequiredUtil$1 = 1;
 
 	/**
@@ -21709,7 +21709,7 @@ function requireUtil$1 () {
 	  return out.join('; ')
 	}
 
-	util$2 = {
+	util$1 = {
 	  isCTLExcludingHtab,
 	  validateCookieName,
 	  validateCookiePath,
@@ -21717,7 +21717,7 @@ function requireUtil$1 () {
 	  toIMFDate,
 	  stringify
 	};
-	return util$2;
+	return util$1;
 }
 
 var parse$3;
@@ -22626,11 +22626,11 @@ function requireEvents () {
 	return events;
 }
 
-var util$1;
+var util;
 var hasRequiredUtil;
 
 function requireUtil () {
-	if (hasRequiredUtil) return util$1;
+	if (hasRequiredUtil) return util;
 	hasRequiredUtil = 1;
 
 	const { kReadyState, kController, kResponse, kBinaryType, kWebSocketURL } = requireSymbols();
@@ -22821,7 +22821,7 @@ function requireUtil () {
 	  }
 	}
 
-	util$1 = {
+	util = {
 	  isEstablished,
 	  isClosing,
 	  isClosed,
@@ -22831,7 +22831,7 @@ function requireUtil () {
 	  failWebsocketConnection,
 	  websocketMessageReceived
 	};
-	return util$1;
+	return util;
 }
 
 var connection;
@@ -30888,248 +30888,19 @@ function superRefine(fn) {
     return _superRefine(fn);
 }
 
-// Zod 3 compat layer
-/** @deprecated Use `z.config(params)` instead. */
-function setErrorMap(map) {
-    config({
-        customError: map,
-    });
-}
-
-var util;
-(function (util) {
-    util.assertEqual = (_) => { };
-    function assertIs(_arg) { }
-    util.assertIs = assertIs;
-    function assertNever(_x) {
-        throw new Error();
-    }
-    util.assertNever = assertNever;
-    util.arrayToEnum = (items) => {
-        const obj = {};
-        for (const item of items) {
-            obj[item] = item;
-        }
-        return obj;
-    };
-    util.getValidEnumValues = (obj) => {
-        const validKeys = util.objectKeys(obj).filter((k) => typeof obj[obj[k]] !== "number");
-        const filtered = {};
-        for (const k of validKeys) {
-            filtered[k] = obj[k];
-        }
-        return util.objectValues(filtered);
-    };
-    util.objectValues = (obj) => {
-        return util.objectKeys(obj).map(function (e) {
-            return obj[e];
-        });
-    };
-    util.objectKeys = typeof Object.keys === "function" // eslint-disable-line ban/ban
-        ? (obj) => Object.keys(obj) // eslint-disable-line ban/ban
-        : (object) => {
-            const keys = [];
-            for (const key in object) {
-                if (Object.prototype.hasOwnProperty.call(object, key)) {
-                    keys.push(key);
-                }
-            }
-            return keys;
-        };
-    util.find = (arr, checker) => {
-        for (const item of arr) {
-            if (checker(item))
-                return item;
-        }
-        return undefined;
-    };
-    util.isInteger = typeof Number.isInteger === "function"
-        ? (val) => Number.isInteger(val) // eslint-disable-line ban/ban
-        : (val) => typeof val === "number" && Number.isFinite(val) && Math.floor(val) === val;
-    function joinValues(array, separator = " | ") {
-        return array.map((val) => (typeof val === "string" ? `'${val}'` : val)).join(separator);
-    }
-    util.joinValues = joinValues;
-    util.jsonStringifyReplacer = (_, value) => {
-        if (typeof value === "bigint") {
-            return value.toString();
-        }
-        return value;
-    };
-})(util || (util = {}));
-var objectUtil;
-(function (objectUtil) {
-    objectUtil.mergeShapes = (first, second) => {
-        return {
-            ...first,
-            ...second, // second overwrites first
-        };
-    };
-})(objectUtil || (objectUtil = {}));
-util.arrayToEnum([
-    "string",
-    "nan",
-    "number",
-    "integer",
-    "float",
-    "boolean",
-    "date",
-    "bigint",
-    "symbol",
-    "function",
-    "undefined",
-    "null",
-    "array",
-    "object",
-    "unknown",
-    "promise",
-    "void",
-    "never",
-    "map",
-    "set",
-]);
-
-const ZodIssueCode = util.arrayToEnum([
-    "invalid_type",
-    "invalid_literal",
-    "custom",
-    "invalid_union",
-    "invalid_union_discriminator",
-    "invalid_enum_value",
-    "unrecognized_keys",
-    "invalid_arguments",
-    "invalid_return_type",
-    "invalid_date",
-    "invalid_string",
-    "too_small",
-    "too_big",
-    "invalid_intersection_types",
-    "not_multiple_of",
-    "not_finite",
-]);
-class ZodError extends Error {
-    get errors() {
-        return this.issues;
-    }
-    constructor(issues) {
-        super();
-        this.issues = [];
-        this.addIssue = (sub) => {
-            this.issues = [...this.issues, sub];
-        };
-        this.addIssues = (subs = []) => {
-            this.issues = [...this.issues, ...subs];
-        };
-        const actualProto = new.target.prototype;
-        if (Object.setPrototypeOf) {
-            // eslint-disable-next-line ban/ban
-            Object.setPrototypeOf(this, actualProto);
-        }
-        else {
-            this.__proto__ = actualProto;
-        }
-        this.name = "ZodError";
-        this.issues = issues;
-    }
-    format(_mapper) {
-        const mapper = _mapper ||
-            function (issue) {
-                return issue.message;
-            };
-        const fieldErrors = { _errors: [] };
-        const processError = (error) => {
-            for (const issue of error.issues) {
-                if (issue.code === "invalid_union") {
-                    issue.unionErrors.map(processError);
-                }
-                else if (issue.code === "invalid_return_type") {
-                    processError(issue.returnTypeError);
-                }
-                else if (issue.code === "invalid_arguments") {
-                    processError(issue.argumentsError);
-                }
-                else if (issue.path.length === 0) {
-                    fieldErrors._errors.push(mapper(issue));
-                }
-                else {
-                    let curr = fieldErrors;
-                    let i = 0;
-                    while (i < issue.path.length) {
-                        const el = issue.path[i];
-                        const terminal = i === issue.path.length - 1;
-                        if (!terminal) {
-                            curr[el] = curr[el] || { _errors: [] };
-                            // if (typeof el === "string") {
-                            //   curr[el] = curr[el] || { _errors: [] };
-                            // } else if (typeof el === "number") {
-                            //   const errorArray: any = [];
-                            //   errorArray._errors = [];
-                            //   curr[el] = curr[el] || errorArray;
-                            // }
-                        }
-                        else {
-                            curr[el] = curr[el] || { _errors: [] };
-                            curr[el]._errors.push(mapper(issue));
-                        }
-                        curr = curr[el];
-                        i++;
-                    }
-                }
-            }
-        };
-        processError(this);
-        return fieldErrors;
-    }
-    static assert(value) {
-        if (!(value instanceof ZodError)) {
-            throw new Error(`Not a ZodError: ${value}`);
-        }
-    }
-    toString() {
-        return this.message;
-    }
-    get message() {
-        return JSON.stringify(this.issues, util.jsonStringifyReplacer, 2);
-    }
-    get isEmpty() {
-        return this.issues.length === 0;
-    }
-    flatten(mapper = (issue) => issue.message) {
-        const fieldErrors = {};
-        const formErrors = [];
-        for (const sub of this.issues) {
-            if (sub.path.length > 0) {
-                const firstEl = sub.path[0];
-                fieldErrors[firstEl] = fieldErrors[firstEl] || [];
-                fieldErrors[firstEl].push(mapper(sub));
-            }
-            else {
-                formErrors.push(mapper(sub));
-            }
-        }
-        return { formErrors, fieldErrors };
-    }
-    get formErrors() {
-        return this.flatten();
-    }
-}
-ZodError.create = (issues) => {
-    const error = new ZodError(issues);
-    return error;
-};
-
-// lib/v3/isZodErrorLike.ts
+// lib/v4/isZodErrorLike.ts
 function isZodErrorLike(err) {
-  return err instanceof Error && err.name === "ZodError" && "issues" in err && Array.isArray(err.issues);
+  return err instanceof Object && "name" in err && (err.name === "ZodError" || err.name === "$ZodError") && "issues" in err && Array.isArray(err.issues);
 }
 
-// lib/v3/ValidationError.ts
+// lib/v4/ValidationError.ts
+var ZOD_VALIDATION_ERROR_NAME = "ZodValidationError";
 var ValidationError = class extends Error {
   name;
   details;
   constructor(message, options) {
     super(message, options);
-    this.name = "ZodValidationError";
+    this.name = ZOD_VALIDATION_ERROR_NAME;
     this.details = getIssuesFromErrorOptions(options);
   }
   toString() {
@@ -31146,14 +30917,467 @@ function getIssuesFromErrorOptions(options) {
   return [];
 }
 
-// lib/utils/NonEmptyArray.ts
-function isNonEmptyArray(value) {
-  return value.length !== 0;
+// lib/v4/errorMap/custom.ts
+function parseCustomIssue(issue) {
+  return {
+    type: issue.code,
+    path: issue.path,
+    message: issue.message ?? "Invalid input"
+  };
+}
+
+// lib/v4/errorMap/invalidElement.ts
+function parseInvalidElementIssue(issue) {
+  return {
+    type: issue.code,
+    path: issue.path,
+    message: `unexpected element in ${issue.origin}`
+  };
+}
+
+// lib/v4/errorMap/invalidKey.ts
+function parseInvalidKeyIssue(issue) {
+  return {
+    type: issue.code,
+    path: issue.path,
+    message: `unexpected key in ${issue.origin}`
+  };
+}
+
+// lib/v4/errorMap/invalidStringFormat.ts
+function parseInvalidStringFormatIssue(issue, options = {
+  displayInvalidFormatDetails: false
+}) {
+  switch (issue.format) {
+    case "lowercase":
+    case "uppercase":
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `value must be in ${issue.format} format`
+      };
+    default: {
+      if (isZodIssueStringStartsWith(issue)) {
+        return parseStringStartsWith(issue);
+      }
+      if (isZodIssueStringEndsWith(issue)) {
+        return parseStringEndsWith(issue);
+      }
+      if (isZodIssueStringIncludes(issue)) {
+        return parseStringIncludes(issue);
+      }
+      if (isZodIssueStringInvalidRegex(issue)) {
+        return parseStringInvalidRegex(issue, options);
+      }
+      if (isZodIssueStringInvalidJWT(issue)) {
+        return parseStringInvalidJWT(issue, options);
+      }
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `invalid ${issue.format}`
+      };
+    }
+  }
+}
+function isZodIssueStringStartsWith(issue) {
+  return issue.format === "starts_with";
+}
+function parseStringStartsWith(issue) {
+  return {
+    type: issue.code,
+    path: issue.path,
+    message: `value must start with "${issue.prefix}"`
+  };
+}
+function isZodIssueStringEndsWith(issue) {
+  return issue.format === "ends_with";
+}
+function parseStringEndsWith(issue) {
+  return {
+    type: issue.code,
+    path: issue.path,
+    message: `value must end with "${issue.suffix}"`
+  };
+}
+function isZodIssueStringIncludes(issue) {
+  return issue.format === "includes";
+}
+function parseStringIncludes(issue) {
+  return {
+    type: issue.code,
+    path: issue.path,
+    message: `value must include "${issue.includes}"`
+  };
+}
+function isZodIssueStringInvalidRegex(issue) {
+  return issue.format === "regex";
+}
+function parseStringInvalidRegex(issue, options = {
+  displayInvalidFormatDetails: false
+}) {
+  let message = "value must match pattern";
+  if (options.displayInvalidFormatDetails) {
+    message += ` "${issue.pattern}"`;
+  }
+  return {
+    type: issue.code,
+    path: issue.path,
+    message
+  };
+}
+function isZodIssueStringInvalidJWT(issue) {
+  return issue.format === "jwt";
+}
+function parseStringInvalidJWT(issue, options = {
+  displayInvalidFormatDetails: false
+}) {
+  return {
+    type: issue.code,
+    path: issue.path,
+    message: options.displayInvalidFormatDetails && issue.algorithm ? `invalid jwt/${issue.algorithm}` : `invalid jwt`
+  };
+}
+
+// lib/v4/errorMap/invalidType.ts
+function parseInvalidTypeIssue(issue) {
+  let message = `expected ${issue.expected}`;
+  if ("input" in issue) {
+    message += `, received ${getTypeName(issue.input)}`;
+  }
+  return {
+    type: issue.code,
+    path: issue.path,
+    message
+  };
+}
+function getTypeName(value) {
+  if (typeof value === "object") {
+    if (value === null) {
+      return "null";
+    }
+    if (value === void 0) {
+      return "undefined";
+    }
+    if (Array.isArray(value)) {
+      return "array";
+    }
+    if (value instanceof Date) {
+      return "date";
+    }
+    if (value instanceof RegExp) {
+      return "regexp";
+    }
+    if (value instanceof Map) {
+      return "map";
+    }
+    if (value instanceof Set) {
+      return "set";
+    }
+    if (value instanceof Error) {
+      return "error";
+    }
+    if (value instanceof Function) {
+      return "function";
+    }
+    return "object";
+  }
+  return typeof value;
+}
+
+// lib/v4/errorMap/invalidUnion.ts
+function parseInvalidUnionIssue(issue) {
+  return {
+    type: issue.code,
+    path: issue.path,
+    message: issue.message ?? "Invalid input"
+  };
 }
 
 // lib/utils/stringify.ts
 function stringifySymbol(symbol) {
   return symbol.description ?? "";
+}
+function stringify$1(value, options = {}) {
+  switch (typeof value) {
+    case "symbol":
+      return stringifySymbol(value);
+    case "bigint":
+    case "number": {
+      switch (options.localization) {
+        case true:
+          return value.toLocaleString();
+        case false:
+          return value.toString();
+        default:
+          return value.toLocaleString(options.localization);
+      }
+    }
+    case "string": {
+      if (options.wrapStringValueInQuote) {
+        return `"${value}"`;
+      }
+      return value;
+    }
+    default: {
+      if (value instanceof Date) {
+        switch (options.localization) {
+          case true:
+            return value.toLocaleString();
+          case false:
+            return value.toISOString();
+          default:
+            return value.toLocaleString(options.localization);
+        }
+      }
+      return String(value);
+    }
+  }
+}
+
+// lib/utils/joinValues.ts
+function joinValues(values, options) {
+  const valuesToDisplay = (options.maxValuesToDisplay ? values.slice(0, options.maxValuesToDisplay) : values).map((value) => {
+    return stringify$1(value, {
+      wrapStringValueInQuote: options.wrapStringValuesInQuote
+    });
+  });
+  if (valuesToDisplay.length < values.length) {
+    valuesToDisplay.push(
+      `${values.length - valuesToDisplay.length} more value(s)`
+    );
+  }
+  return valuesToDisplay.reduce((acc, value, index) => {
+    if (index > 0) {
+      if (index === valuesToDisplay.length - 1 && options.lastSeparator) {
+        acc += options.lastSeparator;
+      } else {
+        acc += options.separator;
+      }
+    }
+    acc += value;
+    return acc;
+  }, "");
+}
+
+// lib/v4/errorMap/invalidValue.ts
+function parseInvalidValueIssue(issue, options) {
+  let message;
+  if (issue.values.length === 0) {
+    message = "invalid value";
+  } else if (issue.values.length === 1) {
+    const valueStr = stringify$1(issue.values[0], {
+      wrapStringValueInQuote: true
+    });
+    message = `expected value to be ${valueStr}`;
+  } else {
+    const valuesStr = joinValues(issue.values, {
+      separator: options.allowedValuesSeparator,
+      lastSeparator: options.allowedValuesLastSeparator,
+      wrapStringValuesInQuote: options.wrapAllowedValuesInQuote,
+      maxValuesToDisplay: options.maxAllowedValuesToDisplay
+    });
+    message = `expected value to be one of ${valuesStr}`;
+  }
+  return {
+    type: issue.code,
+    path: issue.path,
+    message
+  };
+}
+
+// lib/v4/errorMap/notMultipleOf.ts
+function parseNotMultipleOfIssue(issue) {
+  return {
+    type: issue.code,
+    path: issue.path,
+    message: `expected multiple of ${issue.divisor}`
+  };
+}
+
+// lib/v4/errorMap/tooBig.ts
+function parseTooBigIssue(issue, options) {
+  const maxValueStr = issue.origin === "date" ? stringify$1(new Date(issue.maximum), {
+    localization: options.dateLocalization
+  }) : stringify$1(issue.maximum, {
+    localization: options.numberLocalization
+  });
+  switch (issue.origin) {
+    case "number":
+    case "int":
+    case "bigint": {
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `number must be less than${issue.inclusive ? " or equal to" : ""} ${maxValueStr}`
+      };
+    }
+    case "string": {
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `string must contain at most ${maxValueStr} character(s)`
+      };
+    }
+    case "date": {
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `date must be ${issue.inclusive ? "prior or equal to" : "prior to"} "${maxValueStr}"`
+      };
+    }
+    case "array": {
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `array must contain at most ${maxValueStr} item(s)`
+      };
+    }
+    case "set": {
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `set must contain at most ${maxValueStr} item(s)`
+      };
+    }
+    case "file": {
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `file must not exceed ${maxValueStr} byte(s) in size`
+      };
+    }
+    default:
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `value must be less than${issue.inclusive ? " or equal to" : ""} ${maxValueStr}`
+      };
+  }
+}
+
+// lib/v4/errorMap/tooSmall.ts
+function parseTooSmallIssue(issue, options) {
+  const minValueStr = issue.origin === "date" ? stringify$1(new Date(issue.minimum), {
+    localization: options.dateLocalization
+  }) : stringify$1(issue.minimum, {
+    localization: options.numberLocalization
+  });
+  switch (issue.origin) {
+    case "number":
+    case "int":
+    case "bigint": {
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `number must be greater than${issue.inclusive ? " or equal to" : ""} ${minValueStr}`
+      };
+    }
+    case "date": {
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `date must be ${issue.inclusive ? "later or equal to" : "later to"} "${minValueStr}"`
+      };
+    }
+    case "string": {
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `string must contain at least ${minValueStr} character(s)`
+      };
+    }
+    case "array": {
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `array must contain at least ${minValueStr} item(s)`
+      };
+    }
+    case "set": {
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `set must contain at least ${minValueStr} item(s)`
+      };
+    }
+    case "file": {
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `file must be at least ${minValueStr} byte(s) in size`
+      };
+    }
+    default:
+      return {
+        type: issue.code,
+        path: issue.path,
+        message: `value must be greater than${issue.inclusive ? " or equal to" : ""} ${minValueStr}`
+      };
+  }
+}
+
+// lib/v4/errorMap/unrecognizedKeys.ts
+function parseUnrecognizedKeysIssue(issue, options) {
+  const keysStr = joinValues(issue.keys, {
+    separator: options.unrecognizedKeysSeparator,
+    lastSeparator: options.unrecognizedKeysLastSeparator,
+    wrapStringValuesInQuote: options.wrapUnrecognizedKeysInQuote,
+    maxValuesToDisplay: options.maxUnrecognizedKeysToDisplay
+  });
+  return {
+    type: issue.code,
+    path: issue.path,
+    message: `unrecognized key(s) ${keysStr} in object`
+  };
+}
+
+// lib/v4/errorMap/errorMap.ts
+var issueParsers = {
+  invalid_type: parseInvalidTypeIssue,
+  too_big: parseTooBigIssue,
+  too_small: parseTooSmallIssue,
+  invalid_format: parseInvalidStringFormatIssue,
+  invalid_value: parseInvalidValueIssue,
+  invalid_element: parseInvalidElementIssue,
+  not_multiple_of: parseNotMultipleOfIssue,
+  unrecognized_keys: parseUnrecognizedKeysIssue,
+  invalid_key: parseInvalidKeyIssue,
+  custom: parseCustomIssue,
+  invalid_union: parseInvalidUnionIssue
+};
+var defaultErrorMapOptions = {
+  displayInvalidFormatDetails: false,
+  allowedValuesSeparator: ", ",
+  allowedValuesLastSeparator: " or ",
+  wrapAllowedValuesInQuote: true,
+  maxAllowedValuesToDisplay: 10,
+  unrecognizedKeysSeparator: ", ",
+  unrecognizedKeysLastSeparator: " and ",
+  wrapUnrecognizedKeysInQuote: true,
+  maxUnrecognizedKeysToDisplay: 5,
+  dateLocalization: true,
+  numberLocalization: true
+};
+function createErrorMap(partialOptions = {}) {
+  const options = {
+    ...defaultErrorMapOptions,
+    ...partialOptions
+  };
+  const errorMap = (issue) => {
+    if (issue.code === void 0) {
+      return "Not supported issue type";
+    }
+    const parseFunc = issueParsers[issue.code];
+    const ast = parseFunc(issue, options);
+    return ast.message;
+  };
+  return errorMap;
+}
+
+// lib/utils/NonEmptyArray.ts
+function isNonEmptyArray(value) {
+  return value.length !== 0;
 }
 
 // lib/utils/joinPath.ts
@@ -31187,108 +31411,100 @@ function escapeQuotes(str) {
   return str.replace(/"/g, '\\"');
 }
 
-// lib/v3/config.ts
-var ISSUE_SEPARATOR = "; ";
-var MAX_ISSUES_IN_MESSAGE = 99;
-var PREFIX = "Validation error";
-var PREFIX_SEPARATOR = ": ";
-var UNION_SEPARATOR = ", or ";
+// lib/utils/titleCase.ts
+function titleCase(value) {
+  if (value.length === 0) {
+    return value;
+  }
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
-// lib/v3/MessageBuilder.ts
-function createMessageBuilder(props = {}) {
-  const {
-    issueSeparator = ISSUE_SEPARATOR,
-    unionSeparator = UNION_SEPARATOR,
-    prefixSeparator = PREFIX_SEPARATOR,
-    prefix = PREFIX,
-    includePath = true,
-    maxIssuesInMessage = MAX_ISSUES_IN_MESSAGE
-  } = props;
-  return (issues) => {
-    const message = issues.slice(0, maxIssuesInMessage).map(
-      (issue) => getMessageFromZodIssue({
-        issue,
-        issueSeparator,
-        unionSeparator,
-        includePath
-      })
-    ).join(issueSeparator);
-    return prefixMessage(message, prefix, prefixSeparator);
+// lib/v4/MessageBuilder.ts
+var defaultMessageBuilderOptions = {
+  prefix: "Validation error",
+  prefixSeparator: ": ",
+  maxIssuesInMessage: 99,
+  // I've got 99 problems but the b$tch ain't one
+  unionSeparator: " or ",
+  issueSeparator: "; ",
+  includePath: true,
+  forceTitleCase: true
+};
+function createMessageBuilder(partialOptions = {}) {
+  const options = {
+    ...defaultMessageBuilderOptions,
+    ...partialOptions
+  };
+  return function messageBuilder(issues) {
+    const message = issues.slice(0, options.maxIssuesInMessage).map((issue) => mapIssue(issue, options)).join(options.issueSeparator);
+    return conditionallyPrefixMessage(message, options);
   };
 }
-function getMessageFromZodIssue(props) {
-  const { issue, issueSeparator, unionSeparator, includePath } = props;
-  if (issue.code === ZodIssueCode.invalid_union) {
-    return issue.unionErrors.reduce((acc, zodError) => {
-      const newIssues = zodError.issues.map(
-        (issue2) => getMessageFromZodIssue({
-          issue: issue2,
-          issueSeparator,
-          unionSeparator,
-          includePath
-        })
-      ).join(issueSeparator);
-      if (!acc.includes(newIssues)) {
-        acc.push(newIssues);
-      }
-      return acc;
-    }, []).join(unionSeparator);
+function mapIssue(issue, options) {
+  if (issue.code === "invalid_union" && isNonEmptyArray(issue.errors)) {
+    const individualMessages = issue.errors.map(
+      (issues) => issues.map(
+        (subIssue) => mapIssue(
+          {
+            ...subIssue,
+            path: issue.path.concat(subIssue.path)
+          },
+          options
+        )
+      ).join(options.issueSeparator)
+    );
+    return Array.from(new Set(individualMessages)).join(options.unionSeparator);
   }
-  if (issue.code === ZodIssueCode.invalid_arguments) {
-    return [
-      issue.message,
-      ...issue.argumentsError.issues.map(
-        (issue2) => getMessageFromZodIssue({
-          issue: issue2,
-          issueSeparator,
-          unionSeparator,
-          includePath
-        })
-      )
-    ].join(issueSeparator);
+  const buf = [];
+  if (options.forceTitleCase) {
+    buf.push(titleCase(issue.message));
+  } else {
+    buf.push(issue.message);
   }
-  if (issue.code === ZodIssueCode.invalid_return_type) {
-    return [
-      issue.message,
-      ...issue.returnTypeError.issues.map(
-        (issue2) => getMessageFromZodIssue({
-          issue: issue2,
-          issueSeparator,
-          unionSeparator,
-          includePath
-        })
-      )
-    ].join(issueSeparator);
-  }
-  if (includePath && isNonEmptyArray(issue.path)) {
+  pathCondition: if (options.includePath && issue.path !== void 0 && isNonEmptyArray(issue.path)) {
     if (issue.path.length === 1) {
       const identifier = issue.path[0];
       if (typeof identifier === "number") {
-        return `${issue.message} at index ${identifier}`;
+        buf.push(` at index ${identifier}`);
+        break pathCondition;
       }
     }
-    return `${issue.message} at "${joinPath(issue.path)}"`;
+    buf.push(` at "${joinPath(issue.path)}"`);
   }
-  return issue.message;
+  return buf.join("");
 }
-function prefixMessage(message, prefix, prefixSeparator) {
-  if (prefix !== null) {
+function conditionallyPrefixMessage(message, options) {
+  if (options.prefix != null) {
     if (message.length > 0) {
-      return [prefix, message].join(prefixSeparator);
+      return [options.prefix, message].join(options.prefixSeparator);
     }
-    return prefix;
+    return options.prefix;
   }
   if (message.length > 0) {
     return message;
   }
-  return PREFIX;
+  return defaultMessageBuilderOptions.prefix;
 }
 
-// lib/v3/fromZodIssue.ts
-function fromZodIssue(issue, options = {}) {
-  const messageBuilder = createMessageBuilderFromOptions(options);
-  const message = messageBuilder([issue]);
-  return new ValidationError(message, { cause: new ZodError([issue]) });
+// lib/v4/fromZodError.ts
+function fromZodError(zodError, options = {}) {
+  if (!isZodErrorLike(zodError)) {
+    throw new TypeError(
+      `Invalid zodError param; expected instance of ZodError. Did you mean to use the "${fromError.name}" method instead?`
+    );
+  }
+  return fromZodErrorWithoutRuntimeCheck(zodError, options);
+}
+function fromZodErrorWithoutRuntimeCheck(zodError, options = {}) {
+  const zodIssues = zodError.issues;
+  let message;
+  if (isNonEmptyArray(zodIssues)) {
+    const messageBuilder = createMessageBuilderFromOptions(options);
+    message = messageBuilder(zodIssues);
+  } else {
+    message = zodError.message;
+  }
+  return new ValidationError(message, { cause: zodError });
 }
 function createMessageBuilderFromOptions(options) {
   if ("messageBuilder" in options) {
@@ -31297,20 +31513,25 @@ function createMessageBuilderFromOptions(options) {
   return createMessageBuilder(options);
 }
 
-// lib/v3/errorMap.ts
-var errorMap = (issue, ctx) => {
-  const error = fromZodIssue({
-    ...issue,
-    // fallback to the default error message
-    // when issue does not have a message
-    message: issue.message ?? ctx.defaultError
-  });
-  return {
-    message: error.message
-  };
+// lib/v4/toValidationError.ts
+var toValidationError = (options = {}) => (err) => {
+  if (isZodErrorLike(err)) {
+    return fromZodErrorWithoutRuntimeCheck(err, options);
+  }
+  if (err instanceof Error) {
+    return new ValidationError(err.message, { cause: err });
+  }
+  return new ValidationError("Unknown error");
 };
 
-setErrorMap(errorMap);
+// lib/v4/fromError.ts
+function fromError(err, options = {}) {
+  return toValidationError(options)(err);
+}
+
+config({
+    customError: createErrorMap()
+});
 const installMode = _enum(['gw2load', 'arc']);
 const version = tuple([number(), number(), number(), number()]);
 const release = object({
@@ -41754,10 +41975,9 @@ async function generateManifest({ addonsPath, manifestPath, loaderRepo }) {
                 // flag that we encountered a validation error so we can fail later
                 // we don't instantly fail so we can validate all addons first
                 encounteredValidationError = true;
-                for (const validationError of error.errors) {
-                    coreExports.error(validationError.message, { file: filePath });
-                    console.error(`${fileName}: ${validationError.message}`);
-                }
+                const validationError = fromZodError(error);
+                coreExports.error(validationError.message, { file: filePath });
+                console.error(`${fileName}: ${validationError.message}`);
             }
             else {
                 // if this was not just a validation error, rethrow the error

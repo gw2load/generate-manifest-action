@@ -12,7 +12,7 @@ import { updateStandalone } from './standalone.js'
 import * as fs from 'node:fs'
 import toml from 'smol-toml'
 import path from 'node:path'
-import { isZodErrorLike } from 'zod-validation-error'
+import { fromZodError, isZodErrorLike } from 'zod-validation-error'
 import { z } from 'zod'
 
 /** Add addon name to addon if not already known */
@@ -132,10 +132,9 @@ export async function generateManifest({
         // we don't instantly fail so we can validate all addons first
         encounteredValidationError = true
 
-        for (const validationError of error.errors) {
-          core.error(validationError.message, { file: filePath })
-          console.error(`${fileName}: ${validationError.message}`)
-        }
+        const validationError = fromZodError(error)
+        core.error(validationError.message, { file: filePath })
+        console.error(`${fileName}: ${validationError.message}`)
       } else {
         // if this was not just a validation error, rethrow the error
         throw error
