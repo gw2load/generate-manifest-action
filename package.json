@@ -44,7 +44,7 @@
     "fflate": "^0.8.2",
     "pe-toolkit": "github:knoxfighter/pe-toolkit#85966a71ace79587818deaa0cac835fd21d68804",
     "smol-toml": "^1.4.2",
-    "zod": "^4.1.11",
+    "zod": "^4.1.12",
     "zod-validation-error": "^4.0.2"
   },
   "devDependencies": {
