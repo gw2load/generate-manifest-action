@@ -27775,11 +27775,7 @@ function flattenError(error, mapper = (issue) => issue.message) {
     }
     return { formErrors, fieldErrors };
 }
-function formatError(error, _mapper) {
-    const mapper = _mapper ||
-        function (issue) {
-            return issue.message;
-        };
+function formatError(error, mapper = (issue) => issue.message) {
     const fieldErrors = { _errors: [] };
     const processError = (error) => {
         for (const issue of error.issues) {
@@ -28423,7 +28419,7 @@ class Doc {
 const version$1 = {
     major: 4,
     minor: 1,
-    patch: 11,
+    patch: 12,
 };
 
 const $ZodType = /*@__PURE__*/ $constructor("$ZodType", (inst, def) => {
