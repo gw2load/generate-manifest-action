@@ -41813,7 +41813,7 @@ function getStringEnd(str, seek) {
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-let DATE_TIME_RE = /^(\d{4}-\d{2}-\d{2})?[T ]?(?:(\d{2}):\d{2}:\d{2}(?:\.\d+)?)?(Z|[-+]\d{2}:\d{2})?$/i;
+let DATE_TIME_RE = /^(\d{4}-\d{2}-\d{2})?[T ]?(?:(\d{2}):\d{2}(?::\d{2}(?:\.\d+)?)?)?(Z|[-+]\d{2}:\d{2})?$/i;
 class TomlDate extends Date {
     #hasDate = false;
     #hasTime = false;
@@ -41944,13 +41944,14 @@ class TomlDate extends Date {
 let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0[ob])?\d(_?\d)*))$/;
 let FLOAT_REGEX = /^[+-]?\d(_?\d)*(\.\d(_?\d)*)?([eE][+-]?\d(_?\d)*)?$/;
 let LEADING_ZERO = /^[+-]?0[0-9_]/;
-let ESCAPE_REGEX = /^[0-9a-f]{4,8}$/i;
+let ESCAPE_REGEX = /^[0-9a-f]{2,8}$/i;
 let ESC_MAP = {
     b: '\b',
     t: '\t',
     n: '\n',
     f: '\f',
     r: '\r',
+    e: '\x1b',
     '"': '"',
     '\\': '\\',
 };
@@ -41986,9 +41987,9 @@ function parseString(str, ptr = 0, endPtr = str.length) {
         }
         if (isEscape) {
             isEscape = false;
-            if (c === 'u' || c === 'U') {
+            if (c === 'x' || c === 'u' || c === 'U') {
                 // Unicode escape
-                let code = str.slice(ptr, (ptr += (c === 'u' ? 4 : 8)));
+                let code = str.slice(ptr, (ptr += (c === 'x' ? 2 : c === 'u' ? 4 : 8)));
                 if (!ESCAPE_REGEX.test(code)) {
                     throw new TomlError('invalid unicode escape', {
                         toml: str,
@@ -42117,7 +42118,7 @@ function parseValue(value, toml, ptr, integersAsBigInt) {
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-function sliceAndTrimEndOf(str, startPtr, endPtr, allowNewLines) {
+function sliceAndTrimEndOf(str, startPtr, endPtr) {
     let value = str.slice(startPtr, endPtr);
     let commentIdx = value.indexOf('#');
     if (commentIdx > -1) {
@@ -42126,17 +42127,7 @@ function sliceAndTrimEndOf(str, startPtr, endPtr, allowNewLines) {
         skipComment(str, commentIdx);
         value = value.slice(0, commentIdx);
     }
-    let trimmed = value.trimEnd();
-    if (!allowNewLines) {
-        let newlineIdx = value.indexOf('\n', trimmed.length);
-        if (newlineIdx > -1) {
-            throw new TomlError('newlines are not allowed in inline tables', {
-                toml: str,
-                ptr: startPtr + newlineIdx
-            });
-        }
-    }
-    return [trimmed, commentIdx];
+    return [value.trimEnd(), commentIdx];
 }
 function extractValue(str, ptr, end, depth, integersAsBigInt) {
     if (depth === 0) {
@@ -42150,24 +42141,25 @@ function extractValue(str, ptr, end, depth, integersAsBigInt) {
         let [value, endPtr] = c === '['
             ? parseArray(str, ptr, depth, integersAsBigInt)
             : parseInlineTable(str, ptr, depth, integersAsBigInt);
-        let newPtr = end ? skipUntil(str, endPtr, ',', end) : endPtr;
-        if (endPtr - newPtr && end === '}') {
-            let nextNewLine = indexOfNewline(str, endPtr, newPtr);
-            if (nextNewLine > -1) {
-                throw new TomlError('newlines are not allowed in inline tables', {
+        if (end) {
+            endPtr = skipVoid(str, endPtr);
+            if (str[endPtr] === ',')
+                endPtr++;
+            else if (str[endPtr] !== end) {
+                throw new TomlError('expected comma or end of structure', {
                     toml: str,
-                    ptr: nextNewLine
+                    ptr: endPtr,
                 });
             }
         }
-        return [value, newPtr];
+        return [value, endPtr];
     }
     let endPtr;
     if (c === '"' || c === "'") {
         endPtr = getStringEnd(str, ptr);
         let parsed = parseString(str, ptr, endPtr);
         if (end) {
-            endPtr = skipVoid(str, endPtr, end !== ']');
+            endPtr = skipVoid(str, endPtr);
             if (str[endPtr] && str[endPtr] !== ',' && str[endPtr] !== end && str[endPtr] !== '\n' && str[endPtr] !== '\r') {
                 throw new TomlError('unexpected character encountered', {
                     toml: str,
@@ -42179,7 +42171,7 @@ function extractValue(str, ptr, end, depth, integersAsBigInt) {
         return [parsed, endPtr];
     }
     endPtr = skipUntil(str, ptr, ',', end);
-    let slice = sliceAndTrimEndOf(str, ptr, endPtr - (+(str[endPtr - 1] === ',')), end === ']');
+    let slice = sliceAndTrimEndOf(str, ptr, endPtr - (+(str[endPtr - 1] === ',')));
     if (!slice[0]) {
         throw new TomlError('incomplete key-value declaration: no value specified', {
             toml: str,
@@ -42300,20 +42292,17 @@ function parseInlineTable(str, ptr, depth, integersAsBigInt) {
     let res = {};
     let seen = new Set();
     let c;
-    let comma = 0;
     ptr++;
     while ((c = str[ptr++]) !== '}' && c) {
-        let err = { toml: str, ptr: ptr - 1 };
-        if (c === '\n') {
-            throw new TomlError('newlines are not allowed in inline tables', err);
+        if (c === ',') {
+            throw new TomlError('expected value, found comma', {
+                toml: str,
+                ptr: ptr - 1,
+            });
         }
-        else if (c === '#') {
-            throw new TomlError('inline tables cannot contain comments', err);
-        }
-        else if (c === ',') {
-            throw new TomlError('expected key-value, found comma', err);
-        }
-        else if (c !== ' ' && c !== '\t') {
+        else if (c === '#')
+            ptr = skipComment(str, ptr);
+        else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
             let k;
             let t = res;
             let hasOwn = false;
@@ -42342,14 +42331,7 @@ function parseInlineTable(str, ptr, depth, integersAsBigInt) {
             seen.add(value);
             t[k] = value;
             ptr = valueEndPtr;
-            comma = str[ptr - 1] === ',' ? ptr - 1 : 0;
         }
-    }
-    if (comma) {
-        throw new TomlError('trailing commas are not allowed in inline tables', {
-            toml: str,
-            ptr: comma,
-        });
     }
     if (!c) {
         throw new TomlError('unfinished table encountered', {
@@ -42649,13 +42631,12 @@ function stringifyArrayTable(array, key, depth, numberAsFloat) {
     }
     let res = '';
     for (let i = 0; i < array.length; i++) {
-        res += `[[${key}]]\n`;
-        res += stringifyTable(array[i], key, depth, numberAsFloat);
-        res += '\n\n';
+        res += `${res && '\n'}[[${key}]]\n`;
+        res += stringifyTable(0, array[i], key, depth, numberAsFloat);
     }
     return res;
 }
-function stringifyTable(obj, prefix, depth, numberAsFloat) {
+function stringifyTable(tableKey, obj, prefix, depth, numberAsFloat) {
     if (depth === 0) {
         throw new Error('Could not stringify the object: maximum object depth exceeded');
     }
@@ -42671,13 +42652,11 @@ function stringifyTable(obj, prefix, depth, numberAsFloat) {
             }
             let key = BARE_KEY.test(k) ? k : formatString(k);
             if (type === 'array' && isArrayOfTables(obj[k])) {
-                tables += stringifyArrayTable(obj[k], prefix ? `${prefix}.${key}` : key, depth - 1, numberAsFloat);
+                tables += (tables && '\n') + stringifyArrayTable(obj[k], prefix ? `${prefix}.${key}` : key, depth - 1, numberAsFloat);
             }
             else if (type === 'object') {
                 let tblKey = prefix ? `${prefix}.${key}` : key;
-                tables += `[${tblKey}]\n`;
-                tables += stringifyTable(obj[k], tblKey, depth - 1, numberAsFloat);
-                tables += '\n\n';
+                tables += (tables && '\n') + stringifyTable(tblKey, obj[k], tblKey, depth - 1, numberAsFloat);
             }
             else {
                 preamble += key;
@@ -42687,13 +42666,20 @@ function stringifyTable(obj, prefix, depth, numberAsFloat) {
             }
         }
     }
-    return `${preamble}\n${tables}`.trim();
+    if (tableKey && (preamble || !tables)) // Create table only if necessary
+        preamble = preamble ? `[${tableKey}]\n${preamble}` : `[${tableKey}]`;
+    return preamble && tables
+        ? `${preamble}\n${tables}`
+        : preamble || tables;
 }
 function stringify(obj, { maxDepth = 1000, numbersAsFloat = false } = {}) {
     if (extendedTypeOf(obj) !== 'object') {
         throw new TypeError('stringify can only be called with an object');
     }
-    return stringifyTable(obj, '', maxDepth, numbersAsFloat);
+    let str = stringifyTable(0, obj, '', maxDepth, numbersAsFloat);
+    if (str[str.length - 1] !== '\n')
+        return str + '\n';
+    return str;
 }
 
 /*!
