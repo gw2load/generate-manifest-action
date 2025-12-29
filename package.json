@@ -43,7 +43,7 @@
     "@types/semver": "^7.7.1",
     "fflate": "^0.8.2",
     "pe-toolkit": "github:knoxfighter/pe-toolkit#85966a71ace79587818deaa0cac835fd21d68804",
-    "smol-toml": "^1.4.2",
+    "smol-toml": "^1.6.0",
     "zod": "^4.2.1",
     "zod-validation-error": "^5.0.0"
   },
