@@ -31711,81 +31711,153 @@ function parseInvalidKeyIssue(issue) {
   };
 }
 
-// lib/v4/errorMap/invalidStringFormat.ts
-function parseInvalidStringFormatIssue(issue, options = {
-  displayInvalidFormatDetails: false
-}) {
-  switch (issue.format) {
-    case "lowercase":
-    case "uppercase":
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `value must be in ${issue.format} format`
-      };
+// lib/utils/prependWithAOrAn.ts
+var vowelSoundCharSet = /* @__PURE__ */ new Set(["a", "e", "i", "o", "u", "h"]);
+function prependWithAOrAn(value) {
+  const firstLetter = value.charAt(0).toLowerCase();
+  const prefix = vowelSoundCharSet.has(firstLetter) ? "an" : "a";
+  return [prefix, value].join(" ");
+}
+
+// lib/utils/stringify.ts
+function stringifySymbol(symbol) {
+  return symbol.description ?? "";
+}
+function stringify$1(value, options = {}) {
+  switch (typeof value) {
+    case "symbol":
+      return stringifySymbol(value);
+    case "bigint":
+    case "number": {
+      switch (options.localization) {
+        case true:
+          return value.toLocaleString();
+        case false:
+          return value.toString();
+        default:
+          return value.toLocaleString(options.localization);
+      }
+    }
+    case "string": {
+      if (options.wrapStringValueInQuote) {
+        return `"${value}"`;
+      }
+      return value;
+    }
     default: {
-      if (isZodIssueStringStartsWith(issue)) {
-        return parseStringStartsWith(issue);
+      if (value instanceof Date) {
+        switch (options.localization) {
+          case true:
+            return value.toLocaleString();
+          case false:
+            return value.toISOString();
+          default:
+            return value.toLocaleString(options.localization);
+        }
       }
-      if (isZodIssueStringEndsWith(issue)) {
-        return parseStringEndsWith(issue);
-      }
-      if (isZodIssueStringIncludes(issue)) {
-        return parseStringIncludes(issue);
-      }
-      if (isZodIssueStringInvalidRegex(issue)) {
-        return parseStringInvalidRegex(issue, options);
-      }
-      if (isZodIssueStringInvalidJWT(issue)) {
-        return parseStringInvalidJWT(issue, options);
-      }
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `invalid ${issue.format}`
-      };
+      return String(value);
     }
   }
 }
-function isZodIssueStringStartsWith(issue) {
-  return issue.format === "starts_with";
-}
-function parseStringStartsWith(issue) {
-  return {
-    type: issue.code,
-    path: issue.path,
-    message: `value must start with "${issue.prefix}"`
-  };
-}
-function isZodIssueStringEndsWith(issue) {
-  return issue.format === "ends_with";
-}
-function parseStringEndsWith(issue) {
-  return {
-    type: issue.code,
-    path: issue.path,
-    message: `value must end with "${issue.suffix}"`
-  };
-}
-function isZodIssueStringIncludes(issue) {
-  return issue.format === "includes";
-}
-function parseStringIncludes(issue) {
-  return {
-    type: issue.code,
-    path: issue.path,
-    message: `value must include "${issue.includes}"`
-  };
-}
-function isZodIssueStringInvalidRegex(issue) {
-  return issue.format === "regex";
-}
-function parseStringInvalidRegex(issue, options = {
-  displayInvalidFormatDetails: false
-}) {
-  let message = "value must match pattern";
-  if (options.displayInvalidFormatDetails) {
-    message += ` "${issue.pattern}"`;
+
+// lib/v4/errorMap/invalidStringFormat.ts
+function parseInvalidStringFormatIssue(issue, options) {
+  let message = "";
+  switch (issue.format) {
+    case "lowercase":
+    case "uppercase":
+      message += `expected ${issue.format} string`;
+      break;
+    case "starts_with": {
+      message += `expected string to start with "${issue.prefix}"`;
+      break;
+    }
+    case "ends_with": {
+      message += `expected string to end with "${issue.suffix}"`;
+      break;
+    }
+    case "includes": {
+      message += `expected string to include "${issue.includes}"`;
+      break;
+    }
+    case "regex": {
+      message += "expected string to match pattern";
+      if (options.displayInvalidFormatDetails) {
+        message += ` "${issue.pattern}"`;
+      }
+      break;
+    }
+    case "jwt": {
+      message += "expected a jwt";
+      if (options.displayInvalidFormatDetails && issue.inst && "alg" in issue.inst._zod.def) {
+        message += `/${issue.inst._zod.def.alg}`;
+      }
+      message += " token";
+      break;
+    }
+    case "email": {
+      message += "expected an email address";
+      break;
+    }
+    case "url":
+    case "uuid":
+    case "guid":
+    case "cuid":
+    case "cuid2":
+    case "ulid":
+    case "xid":
+    case "ksuid": {
+      message += `expected a ${issue.format.toUpperCase()}`;
+      if (issue.inst && "version" in issue.inst._zod.def) {
+        message += ` ${issue.inst._zod.def.version}`;
+      }
+      break;
+    }
+    case "date":
+    case "datetime":
+    case "time":
+    case "duration": {
+      message += `expected an ISO ${issue.format}`;
+      break;
+    }
+    case "ipv4":
+    case "ipv6": {
+      message += `expected an ${issue.format.slice(0, 2).toUpperCase()}${issue.format.slice(2)} address`;
+      break;
+    }
+    case "cidrv4":
+    case "cidrv6": {
+      message += `expected a ${issue.format.slice(0, 4).toUpperCase()}${issue.format.slice(4)} address range`;
+      break;
+    }
+    case "base64":
+    case "base64url": {
+      message += `expected a ${issue.format} encoded string`;
+      break;
+    }
+    case "e164": {
+      message += "expected an E.164 formatted phone number";
+      break;
+    }
+    default: {
+      if (issue.format.startsWith("sha") || issue.format.startsWith("md5")) {
+        const [alg, encoding] = issue.format.split("_");
+        message += `expected a ${alg.toUpperCase()}`;
+        if (encoding) {
+          message += ` ${encoding}-encoded`;
+        }
+        message += ` hash`;
+        break;
+      }
+      message += `expected ${prependWithAOrAn(issue.format)}`;
+    }
+  }
+  if ("input" in issue && options.reportInput === "typeAndValue") {
+    const valueStr = stringify$1(issue.input, {
+      wrapStringValueInQuote: true,
+      localization: options.numberLocalization
+    });
+    message += `, received ${valueStr}`;
   }
   return {
     type: issue.code,
@@ -31793,24 +31865,45 @@ function parseStringInvalidRegex(issue, options = {
     message
   };
 }
-function isZodIssueStringInvalidJWT(issue) {
-  return issue.format === "jwt";
-}
-function parseStringInvalidJWT(issue, options = {
-  displayInvalidFormatDetails: false
-}) {
-  return {
-    type: issue.code,
-    path: issue.path,
-    message: options.displayInvalidFormatDetails && issue.algorithm ? `invalid jwt/${issue.algorithm}` : `invalid jwt`
-  };
+
+// lib/utils/isPrimitive.ts
+function isPrimitive(value) {
+  if (value === null) {
+    return true;
+  }
+  switch (typeof value) {
+    case "string":
+    case "number":
+    case "bigint":
+    case "boolean":
+    case "symbol":
+    case "undefined":
+      return true;
+    default:
+      return false;
+  }
 }
 
 // lib/v4/errorMap/invalidType.ts
-function parseInvalidTypeIssue(issue) {
+function parseInvalidTypeIssue(issue, options) {
   let message = `expected ${issue.expected}`;
-  if ("input" in issue) {
-    message += `, received ${getTypeName(issue.input)}`;
+  if ("input" in issue && options.reportInput !== false) {
+    const value = issue.input;
+    message += `, received ${getTypeName(value)}`;
+    if (options.reportInput === "typeAndValue") {
+      if (isPrimitive(value)) {
+        const valueStr = stringify$1(value, {
+          wrapStringValueInQuote: true,
+          localization: options.numberLocalization
+        });
+        message += ` (${valueStr})`;
+      } else if (value instanceof Date) {
+        const valueStr = stringify$1(value, {
+          localization: options.dateLocalization
+        });
+        message += ` (${valueStr})`;
+      }
+    }
   }
   return {
     type: issue.code,
@@ -31861,47 +31954,6 @@ function parseInvalidUnionIssue(issue) {
   };
 }
 
-// lib/utils/stringify.ts
-function stringifySymbol(symbol) {
-  return symbol.description ?? "";
-}
-function stringify$1(value, options = {}) {
-  switch (typeof value) {
-    case "symbol":
-      return stringifySymbol(value);
-    case "bigint":
-    case "number": {
-      switch (options.localization) {
-        case true:
-          return value.toLocaleString();
-        case false:
-          return value.toString();
-        default:
-          return value.toLocaleString(options.localization);
-      }
-    }
-    case "string": {
-      if (options.wrapStringValueInQuote) {
-        return `"${value}"`;
-      }
-      return value;
-    }
-    default: {
-      if (value instanceof Date) {
-        switch (options.localization) {
-          case true:
-            return value.toLocaleString();
-          case false:
-            return value.toISOString();
-          default:
-            return value.toLocaleString(options.localization);
-        }
-      }
-      return String(value);
-    }
-  }
-}
-
 // lib/utils/joinValues.ts
 function joinValues(values, options) {
   const valuesToDisplay = (options.maxValuesToDisplay ? values.slice(0, options.maxValuesToDisplay) : values).map((value) => {
@@ -31930,7 +31982,9 @@ function joinValues(values, options) {
 // lib/v4/errorMap/invalidValue.ts
 function parseInvalidValueIssue(issue, options) {
   let message;
-  if (issue.values.length === 0) {
+  if (issue.expected === "stringbool") {
+    message = "expected boolean as string";
+  } else if (issue.values.length === 0) {
     message = "invalid value";
   } else if (issue.values.length === 1) {
     const valueStr = stringify$1(issue.values[0], {
@@ -31946,6 +32000,20 @@ function parseInvalidValueIssue(issue, options) {
     });
     message = `expected value to be one of ${valuesStr}`;
   }
+  if ("input" in issue && options.reportInput === "typeAndValue") {
+    if (isPrimitive(issue.input)) {
+      const valueStr = stringify$1(issue.input, {
+        wrapStringValueInQuote: true,
+        localization: options.numberLocalization
+      });
+      message += `, received ${valueStr}`;
+    } else if (issue.input instanceof Date) {
+      const valueStr = stringify$1(issue.input, {
+        localization: options.dateLocalization
+      });
+      message += `, received ${valueStr}`;
+    }
+  }
   return {
     type: issue.code,
     path: issue.path,
@@ -31954,11 +32022,19 @@ function parseInvalidValueIssue(issue, options) {
 }
 
 // lib/v4/errorMap/notMultipleOf.ts
-function parseNotMultipleOfIssue(issue) {
+function parseNotMultipleOfIssue(issue, options) {
+  let message = `expected multiple of ${issue.divisor}`;
+  if ("input" in issue && options.reportInput === "typeAndValue") {
+    const valueStr = stringify$1(issue.input, {
+      wrapStringValueInQuote: true,
+      localization: options.numberLocalization
+    });
+    message += `, received ${valueStr}`;
+  }
   return {
     type: issue.code,
     path: issue.path,
-    message: `expected multiple of ${issue.divisor}`
+    message
   };
 }
 
@@ -31969,58 +32045,58 @@ function parseTooBigIssue(issue, options) {
   }) : stringify$1(issue.maximum, {
     localization: options.numberLocalization
   });
+  let message = "";
   switch (issue.origin) {
     case "number":
     case "int":
     case "bigint": {
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `number must be less than${issue.inclusive ? " or equal to" : ""} ${maxValueStr}`
-      };
+      message += `expected number to be less than${issue.inclusive ? " or equal to" : ""} ${maxValueStr}`;
+      break;
     }
     case "string": {
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `string must contain at most ${maxValueStr} character(s)`
-      };
+      message += `expected string to contain at most ${maxValueStr} character(s)`;
+      break;
     }
     case "date": {
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `date must be ${issue.inclusive ? "prior or equal to" : "prior to"} "${maxValueStr}"`
-      };
+      message += `expected date to be prior ${issue.inclusive ? "or equal to" : "to"} "${maxValueStr}"`;
+      break;
     }
     case "array": {
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `array must contain at most ${maxValueStr} item(s)`
-      };
+      message += `expected array to contain at most ${maxValueStr} item(s)`;
+      break;
     }
     case "set": {
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `set must contain at most ${maxValueStr} item(s)`
-      };
+      message += `expected set to contain at most ${maxValueStr} item(s)`;
+      break;
     }
     case "file": {
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `file must not exceed ${maxValueStr} byte(s) in size`
-      };
+      message += `expected file to not exceed ${maxValueStr} byte(s) in size`;
+      break;
     }
-    default:
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `value must be less than${issue.inclusive ? " or equal to" : ""} ${maxValueStr}`
-      };
+    default: {
+      message += `expected value to be less than${issue.inclusive ? " or equal to" : ""} ${maxValueStr}`;
+    }
   }
+  if ("input" in issue && options.reportInput === "typeAndValue") {
+    const value = issue.input;
+    if (isPrimitive(value)) {
+      const valueStr = stringify$1(value, {
+        wrapStringValueInQuote: true,
+        localization: options.numberLocalization
+      });
+      message += `, received ${valueStr}`;
+    } else if (value instanceof Date) {
+      const valueStr = stringify$1(value, {
+        localization: options.dateLocalization
+      });
+      message += `, received ${valueStr}`;
+    }
+  }
+  return {
+    type: issue.code,
+    path: issue.path,
+    message
+  };
 }
 
 // lib/v4/errorMap/tooSmall.ts
@@ -32030,58 +32106,57 @@ function parseTooSmallIssue(issue, options) {
   }) : stringify$1(issue.minimum, {
     localization: options.numberLocalization
   });
+  let message = "";
   switch (issue.origin) {
     case "number":
     case "int":
     case "bigint": {
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `number must be greater than${issue.inclusive ? " or equal to" : ""} ${minValueStr}`
-      };
+      message += `expected number to be greater than${issue.inclusive ? " or equal to" : ""} ${minValueStr}`;
+      break;
     }
     case "date": {
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `date must be ${issue.inclusive ? "later or equal to" : "later to"} "${minValueStr}"`
-      };
+      message += `expected date to be ${issue.inclusive ? "later or equal to" : "later to"} "${minValueStr}"`;
+      break;
     }
     case "string": {
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `string must contain at least ${minValueStr} character(s)`
-      };
+      message += `expected string to contain at least ${minValueStr} character(s)`;
+      break;
     }
     case "array": {
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `array must contain at least ${minValueStr} item(s)`
-      };
+      message += `expected array to contain at least ${minValueStr} item(s)`;
+      break;
     }
     case "set": {
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `set must contain at least ${minValueStr} item(s)`
-      };
+      message += `expected set to contain at least ${minValueStr} item(s)`;
+      break;
     }
     case "file": {
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `file must be at least ${minValueStr} byte(s) in size`
-      };
+      message += `expected file to be at least ${minValueStr} byte(s) in size`;
+      break;
     }
     default:
-      return {
-        type: issue.code,
-        path: issue.path,
-        message: `value must be greater than${issue.inclusive ? " or equal to" : ""} ${minValueStr}`
-      };
+      message += `expected value to be greater than${issue.inclusive ? " or equal to" : ""} ${minValueStr}`;
   }
+  if ("input" in issue && options.reportInput === "typeAndValue") {
+    const value = issue.input;
+    if (isPrimitive(value)) {
+      const valueStr = stringify$1(value, {
+        wrapStringValueInQuote: true,
+        localization: options.numberLocalization
+      });
+      message += `, received ${valueStr}`;
+    } else if (value instanceof Date) {
+      const valueStr = stringify$1(value, {
+        localization: options.dateLocalization
+      });
+      message += `, received ${valueStr}`;
+    }
+  }
+  return {
+    type: issue.code,
+    path: issue.path,
+    message
+  };
 }
 
 // lib/v4/errorMap/unrecognizedKeys.ts
@@ -32114,6 +32189,7 @@ var issueParsers = {
   invalid_union: parseInvalidUnionIssue
 };
 var defaultErrorMapOptions = {
+  reportInput: "type",
   displayInvalidFormatDetails: false,
   allowedValuesSeparator: ", ",
   allowedValuesLastSeparator: " or ",
