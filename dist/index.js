@@ -28711,7 +28711,7 @@ class Doc {
 const version$1 = {
     major: 4,
     minor: 3,
-    patch: 5,
+    patch: 6,
 };
 
 const $ZodType = /*@__PURE__*/ $constructor("$ZodType", (inst, def) => {
@@ -30859,7 +30859,7 @@ function finalize(ctx, schema) {
                 }
             }
             // When ref was extracted to $defs, remove properties that match the definition
-            if (refSchema.$ref) {
+            if (refSchema.$ref && refSeen.def) {
                 for (const key in schema) {
                     if (key === "$ref" || key === "allOf")
                         continue;
