@@ -43281,8 +43281,8 @@ function checkAssetChanged(release, githubRelease) {
     const last_asset = githubRelease.assets[release.asset_index];
     return last_asset === undefined || last_asset.id.toString() !== release.id;
 }
-function parseRepository(repsitory) {
-    const [owner, repo] = repsitory.split('/');
+function parseRepository(repository) {
+    const [owner, repo] = repository.split('/');
     return { owner, repo };
 }
 
