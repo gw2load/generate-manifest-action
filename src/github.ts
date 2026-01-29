@@ -152,7 +152,7 @@ function checkAssetChanged(
 
 type Repository = { owner: string; repo: string }
 
-function parseRepository(repsitory: string): Repository {
-  const [owner, repo] = repsitory.split('/')
+function parseRepository(repository: string): Repository {
+  const [owner, repo] = repository.split('/')
   return { owner, repo }
 }
