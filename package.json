@@ -48,7 +48,7 @@
     "zod-validation-error": "^5.0.0"
   },
   "devDependencies": {
-    "@eslint/compat": "^2.0.1",
+    "@eslint/compat": "^2.0.2",
     "@github/local-action": "^7.0.0",
     "@jest/globals": "^30.2.0",
     "@rollup/plugin-commonjs": "^29.0.0",
@@ -68,7 +68,7 @@
     "make-coverage-badge": "^1.2.0",
     "prettier": "^3.8.1",
     "prettier-eslint": "^16.4.2",
-    "rollup": "^4.57.0",
+    "rollup": "^4.57.1",
     "ts-jest": "^29.4.6",
     "ts-jest-resolver": "^2.0.1",
     "typescript": "^5.9.3"
