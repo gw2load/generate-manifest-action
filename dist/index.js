@@ -3542,9 +3542,9 @@ var hasRequiredConstants$3;
 function requireConstants$3 () {
 	if (hasRequiredConstants$3) return constants$3;
 	hasRequiredConstants$3 = 1;
-	(function (exports$1) {
-		Object.defineProperty(exports$1, "__esModule", { value: true });
-		exports$1.SPECIAL_HEADERS = exports$1.HEADER_STATE = exports$1.MINOR = exports$1.MAJOR = exports$1.CONNECTION_TOKEN_CHARS = exports$1.HEADER_CHARS = exports$1.TOKEN = exports$1.STRICT_TOKEN = exports$1.HEX = exports$1.URL_CHAR = exports$1.STRICT_URL_CHAR = exports$1.USERINFO_CHARS = exports$1.MARK = exports$1.ALPHANUM = exports$1.NUM = exports$1.HEX_MAP = exports$1.NUM_MAP = exports$1.ALPHA = exports$1.FINISH = exports$1.H_METHOD_MAP = exports$1.METHOD_MAP = exports$1.METHODS_RTSP = exports$1.METHODS_ICE = exports$1.METHODS_HTTP = exports$1.METHODS = exports$1.LENIENT_FLAGS = exports$1.FLAGS = exports$1.TYPE = exports$1.ERROR = void 0;
+	(function (exports) {
+		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.SPECIAL_HEADERS = exports.HEADER_STATE = exports.MINOR = exports.MAJOR = exports.CONNECTION_TOKEN_CHARS = exports.HEADER_CHARS = exports.TOKEN = exports.STRICT_TOKEN = exports.HEX = exports.URL_CHAR = exports.STRICT_URL_CHAR = exports.USERINFO_CHARS = exports.MARK = exports.ALPHANUM = exports.NUM = exports.HEX_MAP = exports.NUM_MAP = exports.ALPHA = exports.FINISH = exports.H_METHOD_MAP = exports.METHOD_MAP = exports.METHODS_RTSP = exports.METHODS_ICE = exports.METHODS_HTTP = exports.METHODS = exports.LENIENT_FLAGS = exports.FLAGS = exports.TYPE = exports.ERROR = void 0;
 		const utils_1 = requireUtils();
 		(function (ERROR) {
 		    ERROR[ERROR["OK"] = 0] = "OK";
@@ -3572,12 +3572,12 @@ function requireConstants$3 () {
 		    ERROR[ERROR["PAUSED_UPGRADE"] = 22] = "PAUSED_UPGRADE";
 		    ERROR[ERROR["PAUSED_H2_UPGRADE"] = 23] = "PAUSED_H2_UPGRADE";
 		    ERROR[ERROR["USER"] = 24] = "USER";
-		})(exports$1.ERROR || (exports$1.ERROR = {}));
+		})(exports.ERROR || (exports.ERROR = {}));
 		(function (TYPE) {
 		    TYPE[TYPE["BOTH"] = 0] = "BOTH";
 		    TYPE[TYPE["REQUEST"] = 1] = "REQUEST";
 		    TYPE[TYPE["RESPONSE"] = 2] = "RESPONSE";
-		})(exports$1.TYPE || (exports$1.TYPE = {}));
+		})(exports.TYPE || (exports.TYPE = {}));
 		(function (FLAGS) {
 		    FLAGS[FLAGS["CONNECTION_KEEP_ALIVE"] = 1] = "CONNECTION_KEEP_ALIVE";
 		    FLAGS[FLAGS["CONNECTION_CLOSE"] = 2] = "CONNECTION_CLOSE";
@@ -3589,12 +3589,12 @@ function requireConstants$3 () {
 		    FLAGS[FLAGS["TRAILING"] = 128] = "TRAILING";
 		    // 1 << 8 is unused
 		    FLAGS[FLAGS["TRANSFER_ENCODING"] = 512] = "TRANSFER_ENCODING";
-		})(exports$1.FLAGS || (exports$1.FLAGS = {}));
+		})(exports.FLAGS || (exports.FLAGS = {}));
 		(function (LENIENT_FLAGS) {
 		    LENIENT_FLAGS[LENIENT_FLAGS["HEADERS"] = 1] = "HEADERS";
 		    LENIENT_FLAGS[LENIENT_FLAGS["CHUNKED_LENGTH"] = 2] = "CHUNKED_LENGTH";
 		    LENIENT_FLAGS[LENIENT_FLAGS["KEEP_ALIVE"] = 4] = "KEEP_ALIVE";
-		})(exports$1.LENIENT_FLAGS || (exports$1.LENIENT_FLAGS = {}));
+		})(exports.LENIENT_FLAGS || (exports.LENIENT_FLAGS = {}));
 		var METHODS;
 		(function (METHODS) {
 		    METHODS[METHODS["DELETE"] = 0] = "DELETE";
@@ -3654,8 +3654,8 @@ function requireConstants$3 () {
 		    METHODS[METHODS["RECORD"] = 44] = "RECORD";
 		    /* RAOP */
 		    METHODS[METHODS["FLUSH"] = 45] = "FLUSH";
-		})(METHODS = exports$1.METHODS || (exports$1.METHODS = {}));
-		exports$1.METHODS_HTTP = [
+		})(METHODS = exports.METHODS || (exports.METHODS = {}));
+		exports.METHODS_HTTP = [
 		    METHODS.DELETE,
 		    METHODS.GET,
 		    METHODS.HEAD,
@@ -3693,10 +3693,10 @@ function requireConstants$3 () {
 		    // TODO(indutny): should we allow it with HTTP?
 		    METHODS.SOURCE,
 		];
-		exports$1.METHODS_ICE = [
+		exports.METHODS_ICE = [
 		    METHODS.SOURCE,
 		];
-		exports$1.METHODS_RTSP = [
+		exports.METHODS_RTSP = [
 		    METHODS.OPTIONS,
 		    METHODS.DESCRIBE,
 		    METHODS.ANNOUNCE,
@@ -3713,59 +3713,59 @@ function requireConstants$3 () {
 		    METHODS.GET,
 		    METHODS.POST,
 		];
-		exports$1.METHOD_MAP = utils_1.enumToMap(METHODS);
-		exports$1.H_METHOD_MAP = {};
-		Object.keys(exports$1.METHOD_MAP).forEach((key) => {
+		exports.METHOD_MAP = utils_1.enumToMap(METHODS);
+		exports.H_METHOD_MAP = {};
+		Object.keys(exports.METHOD_MAP).forEach((key) => {
 		    if (/^H/.test(key)) {
-		        exports$1.H_METHOD_MAP[key] = exports$1.METHOD_MAP[key];
+		        exports.H_METHOD_MAP[key] = exports.METHOD_MAP[key];
 		    }
 		});
 		(function (FINISH) {
 		    FINISH[FINISH["SAFE"] = 0] = "SAFE";
 		    FINISH[FINISH["SAFE_WITH_CB"] = 1] = "SAFE_WITH_CB";
 		    FINISH[FINISH["UNSAFE"] = 2] = "UNSAFE";
-		})(exports$1.FINISH || (exports$1.FINISH = {}));
-		exports$1.ALPHA = [];
+		})(exports.FINISH || (exports.FINISH = {}));
+		exports.ALPHA = [];
 		for (let i = 'A'.charCodeAt(0); i <= 'Z'.charCodeAt(0); i++) {
 		    // Upper case
-		    exports$1.ALPHA.push(String.fromCharCode(i));
+		    exports.ALPHA.push(String.fromCharCode(i));
 		    // Lower case
-		    exports$1.ALPHA.push(String.fromCharCode(i + 0x20));
+		    exports.ALPHA.push(String.fromCharCode(i + 0x20));
 		}
-		exports$1.NUM_MAP = {
+		exports.NUM_MAP = {
 		    0: 0, 1: 1, 2: 2, 3: 3, 4: 4,
 		    5: 5, 6: 6, 7: 7, 8: 8, 9: 9,
 		};
-		exports$1.HEX_MAP = {
+		exports.HEX_MAP = {
 		    0: 0, 1: 1, 2: 2, 3: 3, 4: 4,
 		    5: 5, 6: 6, 7: 7, 8: 8, 9: 9,
 		    A: 0XA, B: 0XB, C: 0XC, D: 0XD, E: 0XE, F: 0XF,
 		    a: 0xa, b: 0xb, c: 0xc, d: 0xd, e: 0xe, f: 0xf,
 		};
-		exports$1.NUM = [
+		exports.NUM = [
 		    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 		];
-		exports$1.ALPHANUM = exports$1.ALPHA.concat(exports$1.NUM);
-		exports$1.MARK = ['-', '_', '.', '!', '~', '*', '\'', '(', ')'];
-		exports$1.USERINFO_CHARS = exports$1.ALPHANUM
-		    .concat(exports$1.MARK)
+		exports.ALPHANUM = exports.ALPHA.concat(exports.NUM);
+		exports.MARK = ['-', '_', '.', '!', '~', '*', '\'', '(', ')'];
+		exports.USERINFO_CHARS = exports.ALPHANUM
+		    .concat(exports.MARK)
 		    .concat(['%', ';', ':', '&', '=', '+', '$', ',']);
 		// TODO(indutny): use RFC
-		exports$1.STRICT_URL_CHAR = [
+		exports.STRICT_URL_CHAR = [
 		    '!', '"', '$', '%', '&', '\'',
 		    '(', ')', '*', '+', ',', '-', '.', '/',
 		    ':', ';', '<', '=', '>',
 		    '@', '[', '\\', ']', '^', '_',
 		    '`',
 		    '{', '|', '}', '~',
-		].concat(exports$1.ALPHANUM);
-		exports$1.URL_CHAR = exports$1.STRICT_URL_CHAR
+		].concat(exports.ALPHANUM);
+		exports.URL_CHAR = exports.STRICT_URL_CHAR
 		    .concat(['\t', '\f']);
 		// All characters with 0x80 bit set to 1
 		for (let i = 0x80; i <= 0xff; i++) {
-		    exports$1.URL_CHAR.push(i);
+		    exports.URL_CHAR.push(i);
 		}
-		exports$1.HEX = exports$1.NUM.concat(['a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F']);
+		exports.HEX = exports.NUM.concat(['a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F']);
 		/* Tokens as defined by rfc 2616. Also lowercases them.
 		 *        token       = 1*<any CHAR except CTLs or separators>
 		 *     separators     = "(" | ")" | "<" | ">" | "@"
@@ -3773,27 +3773,27 @@ function requireConstants$3 () {
 		 *                    | "/" | "[" | "]" | "?" | "="
 		 *                    | "{" | "}" | SP | HT
 		 */
-		exports$1.STRICT_TOKEN = [
+		exports.STRICT_TOKEN = [
 		    '!', '#', '$', '%', '&', '\'',
 		    '*', '+', '-', '.',
 		    '^', '_', '`',
 		    '|', '~',
-		].concat(exports$1.ALPHANUM);
-		exports$1.TOKEN = exports$1.STRICT_TOKEN.concat([' ']);
+		].concat(exports.ALPHANUM);
+		exports.TOKEN = exports.STRICT_TOKEN.concat([' ']);
 		/*
 		 * Verify that a char is a valid visible (printable) US-ASCII
 		 * character or %x80-FF
 		 */
-		exports$1.HEADER_CHARS = ['\t'];
+		exports.HEADER_CHARS = ['\t'];
 		for (let i = 32; i <= 255; i++) {
 		    if (i !== 127) {
-		        exports$1.HEADER_CHARS.push(i);
+		        exports.HEADER_CHARS.push(i);
 		    }
 		}
 		// ',' = \x44
-		exports$1.CONNECTION_TOKEN_CHARS = exports$1.HEADER_CHARS.filter((c) => c !== 44);
-		exports$1.MAJOR = exports$1.NUM_MAP;
-		exports$1.MINOR = exports$1.MAJOR;
+		exports.CONNECTION_TOKEN_CHARS = exports.HEADER_CHARS.filter((c) => c !== 44);
+		exports.MAJOR = exports.NUM_MAP;
+		exports.MINOR = exports.MAJOR;
 		var HEADER_STATE;
 		(function (HEADER_STATE) {
 		    HEADER_STATE[HEADER_STATE["GENERAL"] = 0] = "GENERAL";
@@ -3805,8 +3805,8 @@ function requireConstants$3 () {
 		    HEADER_STATE[HEADER_STATE["CONNECTION_CLOSE"] = 6] = "CONNECTION_CLOSE";
 		    HEADER_STATE[HEADER_STATE["CONNECTION_UPGRADE"] = 7] = "CONNECTION_UPGRADE";
 		    HEADER_STATE[HEADER_STATE["TRANSFER_ENCODING_CHUNKED"] = 8] = "TRANSFER_ENCODING_CHUNKED";
-		})(HEADER_STATE = exports$1.HEADER_STATE || (exports$1.HEADER_STATE = {}));
-		exports$1.SPECIAL_HEADERS = {
+		})(HEADER_STATE = exports.HEADER_STATE || (exports.HEADER_STATE = {}));
+		exports.SPECIAL_HEADERS = {
 		    'connection': HEADER_STATE.CONNECTION,
 		    'content-length': HEADER_STATE.CONTENT_LENGTH,
 		    'proxy-connection': HEADER_STATE.CONNECTION,
@@ -8697,10 +8697,10 @@ function requireClientH1 () {
 	const TIMEOUT_KEEP_ALIVE = 8 | USE_NATIVE_TIMER;
 
 	class Parser {
-	  constructor (client, socket, { exports: exports$1 }) {
+	  constructor (client, socket, { exports }) {
 	    assert(Number.isFinite(client[kMaxHeadersSize]) && client[kMaxHeadersSize] > 0);
 
-	    this.llhttp = exports$1;
+	    this.llhttp = exports;
 	    this.ptr = this.llhttp.llhttp_alloc(constants.TYPE.RESPONSE);
 	    this.client = client;
 	    this.socket = socket;
@@ -33436,23 +33436,23 @@ var hasRequiredDataTypes;
 function requireDataTypes () {
 	if (hasRequiredDataTypes) return dataTypes;
 	hasRequiredDataTypes = 1;
-	(function (exports$1) {
-		Object.defineProperty(exports$1, "__esModule", { value: true });
-		exports$1.DataTypes = exports$1.DataSize = void 0;
+	(function (exports) {
+		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.DataTypes = exports.DataSize = void 0;
 		(function (DataSize) {
 		    DataSize[DataSize["BYTE"] = 1] = "BYTE";
 		    DataSize[DataSize["WORD"] = 2] = "WORD";
 		    DataSize[DataSize["DWORD"] = 4] = "DWORD";
 		    DataSize[DataSize["QWORD"] = 8] = "QWORD";
 		    DataSize[DataSize["WCHAR"] = 2] = "WCHAR";
-		})(exports$1.DataSize || (exports$1.DataSize = {}));
+		})(exports.DataSize || (exports.DataSize = {}));
 		(function (DataTypes) {
 		    DataTypes.BYTE = "number";
 		    DataTypes.WORD = "number";
 		    DataTypes.DWORD = "number";
 		    DataTypes.QWORD = "bigint";
 		    DataTypes.WCHAR = "number";
-		})(exports$1.DataTypes || (exports$1.DataTypes = {})); 
+		})(exports.DataTypes || (exports.DataTypes = {})); 
 	} (dataTypes));
 	return dataTypes;
 }
@@ -33750,9 +33750,9 @@ var hasRequiredImageDataDirectoryTable;
 function requireImageDataDirectoryTable () {
 	if (hasRequiredImageDataDirectoryTable) return imageDataDirectoryTable;
 	hasRequiredImageDataDirectoryTable = 1;
-	(function (exports$1) {
-		Object.defineProperty(exports$1, "__esModule", { value: true });
-		exports$1.IMAGE_DATA_DIRECTORY_TYPES = exports$1.ImageDataDirectoryTable = void 0;
+	(function (exports) {
+		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.IMAGE_DATA_DIRECTORY_TYPES = exports.ImageDataDirectoryTable = void 0;
 		var image_data_directory_entry_1 = requireImageDataDirectoryEntry();
 		var ImageDataDirectoryTable = /** @class */ (function () {
 		    function ImageDataDirectoryTable() {
@@ -33782,7 +33782,7 @@ function requireImageDataDirectoryTable () {
 		    };
 		    return ImageDataDirectoryTable;
 		}());
-		exports$1.ImageDataDirectoryTable = ImageDataDirectoryTable;
+		exports.ImageDataDirectoryTable = ImageDataDirectoryTable;
 		var IMAGE_DATA_DIRECTORY_TYPES;
 		(function (IMAGE_DATA_DIRECTORY_TYPES) {
 		    /** Export table */
@@ -33817,7 +33817,7 @@ function requireImageDataDirectoryTable () {
 		    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["RES1"] = 14] = "RES1";
 		    /** Reserve */
 		    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["RES2"] = 15] = "RES2";
-		})(IMAGE_DATA_DIRECTORY_TYPES = exports$1.IMAGE_DATA_DIRECTORY_TYPES || (exports$1.IMAGE_DATA_DIRECTORY_TYPES = {})); 
+		})(IMAGE_DATA_DIRECTORY_TYPES = exports.IMAGE_DATA_DIRECTORY_TYPES || (exports.IMAGE_DATA_DIRECTORY_TYPES = {})); 
 	} (imageDataDirectoryTable));
 	return imageDataDirectoryTable;
 }
@@ -33833,9 +33833,9 @@ var hasRequiredHexUtils;
 function requireHexUtils () {
 	if (hasRequiredHexUtils) return hexUtils;
 	hasRequiredHexUtils = 1;
-	(function (exports$1) {
-		Object.defineProperty(exports$1, "__esModule", { value: true });
-		exports$1.HexUtils = void 0;
+	(function (exports) {
+		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.HexUtils = void 0;
 		(function (HexUtils) {
 		    function uintArrayToHex(arr) {
 		        var out = [];
@@ -33858,7 +33858,7 @@ function requireHexUtils () {
 		        return out.map(function (v) { return v.padStart(padding, "0"); });
 		    }
 		    HexUtils.uintArrayToHex = uintArrayToHex;
-		})(exports$1.HexUtils || (exports$1.HexUtils = {})); 
+		})(exports.HexUtils || (exports.HexUtils = {})); 
 	} (hexUtils));
 	return hexUtils;
 }
@@ -33986,7 +33986,7 @@ var hasRequiredImageFileHeader;
 function requireImageFileHeader () {
 	if (hasRequiredImageFileHeader) return imageFileHeader;
 	hasRequiredImageFileHeader = 1;
-	(function (exports$1) {
+	(function (exports) {
 		var __assign = (imageFileHeader && imageFileHeader.__assign) || function () {
 		    __assign = Object.assign || function(t) {
 		        for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -33998,12 +33998,12 @@ function requireImageFileHeader () {
 		    };
 		    return __assign.apply(this, arguments);
 		};
-		Object.defineProperty(exports$1, "__esModule", { value: true });
-		exports$1.ImageFileHeader = exports$1.IMAGE_FILE_HEADER = exports$1.IMAGE_OPTIONAL_HEADER_SIZE = exports$1.IMAGE_SIGNATURE = exports$1.FileHeaderImageCharacteristicsLookup = exports$1.MachineLookup = void 0;
+		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.ImageFileHeader = exports.IMAGE_FILE_HEADER = exports.IMAGE_OPTIONAL_HEADER_SIZE = exports.IMAGE_SIGNATURE = exports.FileHeaderImageCharacteristicsLookup = exports.MachineLookup = void 0;
 		/**
 		 * https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#characteristics
 		 */
-		exports$1.MachineLookup = {
+		exports.MachineLookup = {
 		    0x0000: 'The content of this field is assumed to be applicable to any machine typ',
 		    0x014d: 'Intel i860',
 		    0x014c: 'Intel i386, i486, i586, or later processors and compatible processors',
@@ -34017,7 +34017,7 @@ function requireImageFileHeader () {
 		/**
 		 * https://www.aldeid.com/wiki/PE-Portable-executable#Image_Characteristics
 		 */
-		exports$1.FileHeaderImageCharacteristicsLookup = {
+		exports.FileHeaderImageCharacteristicsLookup = {
 		    /** Image only, Windows CE, and Microsoft Windows NT and later.
 		     * This indicates that the file does not contain base relocations and must therefore
 		     * be loaded at its preferred base address. If the base address is not available,
@@ -34083,18 +34083,18 @@ function requireImageFileHeader () {
 		    IMAGE_SIGNATURE[IMAGE_SIGNATURE["OS2_LE_SIGNATURE"] = 1279590400] = "OS2_LE_SIGNATURE";
 		    /** 0x5045 = PE00 */
 		    IMAGE_SIGNATURE[IMAGE_SIGNATURE["NT_SIGNATURE"] = 1346699264] = "NT_SIGNATURE";
-		})(exports$1.IMAGE_SIGNATURE || (exports$1.IMAGE_SIGNATURE = {}));
+		})(exports.IMAGE_SIGNATURE || (exports.IMAGE_SIGNATURE = {}));
 		var IMAGE_OPTIONAL_HEADER_SIZE;
 		(function (IMAGE_OPTIONAL_HEADER_SIZE) {
 		    /** 0x00E0 = 224 for 32bit */
 		    IMAGE_OPTIONAL_HEADER_SIZE[IMAGE_OPTIONAL_HEADER_SIZE["$32_BIT"] = 224] = "$32_BIT";
 		    /** 0x00F0 = 240 for 64bit */
 		    IMAGE_OPTIONAL_HEADER_SIZE[IMAGE_OPTIONAL_HEADER_SIZE["$64_BIT"] = 240] = "$64_BIT";
-		})(IMAGE_OPTIONAL_HEADER_SIZE = exports$1.IMAGE_OPTIONAL_HEADER_SIZE || (exports$1.IMAGE_OPTIONAL_HEADER_SIZE = {}));
+		})(IMAGE_OPTIONAL_HEADER_SIZE = exports.IMAGE_OPTIONAL_HEADER_SIZE || (exports.IMAGE_OPTIONAL_HEADER_SIZE = {}));
 		function IMAGE_FILE_HEADER(values) {
 		    return __assign({ ntSig: Uint8Array.from([0x00, 0x00]), wMachine: 0x0000, wNumberOfSections: 0x0000, dwTimeDateStamp: 0x00000000, dwPointerToSymbolTable: 0x00000000, dwNumberOfSymbols: 0x00000000, wSizeOfOptionalHeader: 0x0000, wCharacteristics: 0x0000 }, values);
 		}
-		exports$1.IMAGE_FILE_HEADER = IMAGE_FILE_HEADER;
+		exports.IMAGE_FILE_HEADER = IMAGE_FILE_HEADER;
 		var ImageFileHeader = /** @class */ (function () {
 		    function ImageFileHeader(struct) {
 		        this.struct = IMAGE_FILE_HEADER(struct);
@@ -34103,7 +34103,7 @@ function requireImageFileHeader () {
 		        return this.struct.ntSig.reduce(function (str, b) { return str + b.toString(16).padStart(2, "0"); }, '');
 		    };
 		    ImageFileHeader.prototype.getMachine = function () {
-		        var meaning = this.struct.wMachine in exports$1.MachineLookup ? exports$1.MachineLookup[this.struct.wMachine] : 'Unknown';
+		        var meaning = this.struct.wMachine in exports.MachineLookup ? exports.MachineLookup[this.struct.wMachine] : 'Unknown';
 		        return { value: this.struct.wMachine.toString(16).padStart(4, "0"), meaning: meaning };
 		    };
 		    ImageFileHeader.prototype.getNumberOfSections = function () {
@@ -34124,9 +34124,9 @@ function requireImageFileHeader () {
 		    ImageFileHeader.prototype.getCharacteristics = function () {
 		        var value = this.struct.wCharacteristics.toString(16).padStart(4, "0");
 		        var meaning = [];
-		        for (var key in exports$1.FileHeaderImageCharacteristicsLookup) {
+		        for (var key in exports.FileHeaderImageCharacteristicsLookup) {
 		            if ((this.struct.wCharacteristics & parseInt(key)) !== 0) {
-		                meaning.push("(0x".concat(parseInt(key).toString(16).padStart(4, "0"), ") ").concat(exports$1.FileHeaderImageCharacteristicsLookup[key]));
+		                meaning.push("(0x".concat(parseInt(key).toString(16).padStart(4, "0"), ") ").concat(exports.FileHeaderImageCharacteristicsLookup[key]));
 		            }
 		        }
 		        return { value: value, meaning: meaning };
@@ -34154,7 +34154,7 @@ function requireImageFileHeader () {
 		    };
 		    return ImageFileHeader;
 		}());
-		exports$1.ImageFileHeader = ImageFileHeader; 
+		exports.ImageFileHeader = ImageFileHeader; 
 	} (imageFileHeader));
 	return imageFileHeader;
 }
@@ -34166,7 +34166,7 @@ var hasRequiredImageOptionalHeader;
 function requireImageOptionalHeader () {
 	if (hasRequiredImageOptionalHeader) return imageOptionalHeader;
 	hasRequiredImageOptionalHeader = 1;
-	(function (exports$1) {
+	(function (exports) {
 		var __assign = (imageOptionalHeader && imageOptionalHeader.__assign) || function () {
 		    __assign = Object.assign || function(t) {
 		        for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -34179,25 +34179,25 @@ function requireImageOptionalHeader () {
 		    return __assign.apply(this, arguments);
 		};
 		var _a, _b;
-		Object.defineProperty(exports$1, "__esModule", { value: true });
-		exports$1.ImageOptionalHeader = exports$1.IMAGE_OPTIONAL_HEADER = exports$1.LoaderFlagsLookup = exports$1.DllCharacteristicsLookup = exports$1.SubsystemLookup = exports$1.OptionalHeaderMagicNumberLookup = exports$1.OptionalHeaderCpuArchitectureLookup = exports$1.OptionalHeaderMagicNumber = void 0;
+		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.ImageOptionalHeader = exports.IMAGE_OPTIONAL_HEADER = exports.LoaderFlagsLookup = exports.DllCharacteristicsLookup = exports.SubsystemLookup = exports.OptionalHeaderMagicNumberLookup = exports.OptionalHeaderCpuArchitectureLookup = exports.OptionalHeaderMagicNumber = void 0;
 		var data_types_1 = requireDataTypes();
 		var OptionalHeaderMagicNumber;
 		(function (OptionalHeaderMagicNumber) {
 		    OptionalHeaderMagicNumber[OptionalHeaderMagicNumber["ROM"] = 263] = "ROM";
 		    OptionalHeaderMagicNumber[OptionalHeaderMagicNumber["PE32"] = 267] = "PE32";
 		    OptionalHeaderMagicNumber[OptionalHeaderMagicNumber["PE32Plus"] = 523] = "PE32Plus";
-		})(OptionalHeaderMagicNumber = exports$1.OptionalHeaderMagicNumber || (exports$1.OptionalHeaderMagicNumber = {}));
-		exports$1.OptionalHeaderCpuArchitectureLookup = (_a = {},
+		})(OptionalHeaderMagicNumber = exports.OptionalHeaderMagicNumber || (exports.OptionalHeaderMagicNumber = {}));
+		exports.OptionalHeaderCpuArchitectureLookup = (_a = {},
 		    _a[OptionalHeaderMagicNumber.PE32] = 'x86',
 		    _a[OptionalHeaderMagicNumber.PE32Plus] = 'x64',
 		    _a);
-		exports$1.OptionalHeaderMagicNumberLookup = (_b = {},
+		exports.OptionalHeaderMagicNumberLookup = (_b = {},
 		    _b[OptionalHeaderMagicNumber.ROM] = 'Identifies as a ROM image.',
 		    _b[OptionalHeaderMagicNumber.PE32] = 'Identifies as a PE32 (32bit) executable file.',
 		    _b[OptionalHeaderMagicNumber.PE32Plus] = 'Identifies as a PE32+ (64bit) executable.',
 		    _b);
-		exports$1.SubsystemLookup = {
+		exports.SubsystemLookup = {
 		    0x0000: 'UNKNOWN - An unknown subsystem',
 		    0x0001: 'NATIVE - Doesn\'t require a subsystem (such as a device driver)',
 		    0x0002: 'WINDOWS_GUI - Runs in the Windows GUI subsystem',
@@ -34217,7 +34217,7 @@ function requireImageOptionalHeader () {
 		 * https://www.aldeid.com/wiki/PE-Portable-executable#DLL_Characteristics
 		 * https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-image_optional_header32
 		 */
-		exports$1.DllCharacteristicsLookup = {
+		exports.DllCharacteristicsLookup = {
 		    0x0000: 'None',
 		    0x0001: 'RESERVED - must be zero.',
 		    0x0002: 'RESERVED - must be zero.',
@@ -34239,7 +34239,7 @@ function requireImageOptionalHeader () {
 		    // 0x0004: 'Call when a thread starts up',
 		    // 0x0008: 'Call when DLL exits'
 		};
-		exports$1.LoaderFlagsLookup = {
+		exports.LoaderFlagsLookup = {
 		    0x0001: 'Invoke a breakpoint instruction before starting the process',
 		    0x0002: 'Invoke a debugger on the process after it\'s been loaded'
 		};
@@ -34258,7 +34258,7 @@ function requireImageOptionalHeader () {
 		        ///////////////////////////
 		        dwSizeOfStackReserve: 0x00000000, dwSizeOfStackCommit: 0x00000000, dwSizeOfHeapReserve: 0x00000000, dwSizeOfHeapCommit: 0x00000000, dwLoaderFlags: 0x00000000, dwNumberOfRvaAndSizes: 0x00000000 }, values);
 		}
-		exports$1.IMAGE_OPTIONAL_HEADER = IMAGE_OPTIONAL_HEADER;
+		exports.IMAGE_OPTIONAL_HEADER = IMAGE_OPTIONAL_HEADER;
 		var ImageOptionalHeader = /** @class */ (function () {
 		    function ImageOptionalHeader(struct, dataDirectory) {
 		        this.struct = IMAGE_OPTIONAL_HEADER(struct);
@@ -34274,8 +34274,8 @@ function requireImageOptionalHeader () {
 		        return wMagic === OptionalHeaderMagicNumber.PE32Plus;
 		    };
 		    ImageOptionalHeader.prototype.getCpuArchitecture = function () {
-		        if (this.struct.wMagic in exports$1.OptionalHeaderCpuArchitectureLookup) {
-		            return exports$1.OptionalHeaderCpuArchitectureLookup[this.struct.wMagic];
+		        if (this.struct.wMagic in exports.OptionalHeaderCpuArchitectureLookup) {
+		            return exports.OptionalHeaderCpuArchitectureLookup[this.struct.wMagic];
 		        }
 		        else {
 		            return 'Unknown';
@@ -34283,7 +34283,7 @@ function requireImageOptionalHeader () {
 		    };
 		    ImageOptionalHeader.prototype.getMagic = function () {
 		        var value = this.struct.wMagic.toString(16).padStart(4, "0");
-		        var meaning = this.struct.wMagic in exports$1.OptionalHeaderMagicNumberLookup ? exports$1.OptionalHeaderMagicNumberLookup[this.struct.wMagic] : 'Unknown';
+		        var meaning = this.struct.wMagic in exports.OptionalHeaderMagicNumberLookup ? exports.OptionalHeaderMagicNumberLookup[this.struct.wMagic] : 'Unknown';
 		        return { value: value, meaning: meaning };
 		    };
 		    ImageOptionalHeader.prototype.getMajorLinkerVersion = function () {
@@ -34353,15 +34353,15 @@ function requireImageOptionalHeader () {
 		    };
 		    ImageOptionalHeader.prototype.getSubsystem = function () {
 		        var value = this.struct.wSubsystem.toString(16).padStart(4, "0");
-		        var meaning = this.struct.wSubsystem in exports$1.SubsystemLookup ? exports$1.SubsystemLookup[this.struct.wSubsystem] : 'Unknown';
+		        var meaning = this.struct.wSubsystem in exports.SubsystemLookup ? exports.SubsystemLookup[this.struct.wSubsystem] : 'Unknown';
 		        return { value: value, meaning: meaning };
 		    };
 		    ImageOptionalHeader.prototype.getDllCharacteristics = function () {
 		        var value = this.struct.wDllCharacteristics.toString(16).padStart(4, "0");
 		        var meaning = [];
-		        for (var key in exports$1.DllCharacteristicsLookup) {
+		        for (var key in exports.DllCharacteristicsLookup) {
 		            if ((this.struct.wDllCharacteristics & parseInt(key)) !== 0) {
-		                meaning.push("(0x".concat(parseInt(key).toString(16).padStart(4, "0"), ") ").concat(exports$1.DllCharacteristicsLookup[key]));
+		                meaning.push("(0x".concat(parseInt(key).toString(16).padStart(4, "0"), ") ").concat(exports.DllCharacteristicsLookup[key]));
 		            }
 		        }
 		        return { value: value, meaning: meaning };
@@ -34400,7 +34400,7 @@ function requireImageOptionalHeader () {
 		    };
 		    ImageOptionalHeader.prototype.getLoaderFlags = function () {
 		        var value = this.struct.dwLoaderFlags.toString(16).padStart(8, "0");
-		        var meaning = this.struct.dwLoaderFlags in exports$1.LoaderFlagsLookup ? exports$1.LoaderFlagsLookup[this.struct.dwLoaderFlags] : 'None';
+		        var meaning = this.struct.dwLoaderFlags in exports.LoaderFlagsLookup ? exports.LoaderFlagsLookup[this.struct.dwLoaderFlags] : 'None';
 		        return { value: value, meaning: meaning };
 		    };
 		    ImageOptionalHeader.prototype.getNumberOfRvaAndSizes = function () {
@@ -34452,7 +34452,7 @@ function requireImageOptionalHeader () {
 		    };
 		    return ImageOptionalHeader;
 		}());
-		exports$1.ImageOptionalHeader = ImageOptionalHeader; 
+		exports.ImageOptionalHeader = ImageOptionalHeader; 
 	} (imageOptionalHeader));
 	return imageOptionalHeader;
 }
@@ -34818,7 +34818,7 @@ var hasRequiredImageResourceDirectory;
 function requireImageResourceDirectory () {
 	if (hasRequiredImageResourceDirectory) return imageResourceDirectory;
 	hasRequiredImageResourceDirectory = 1;
-	(function (exports$1) {
+	(function (exports) {
 		var __assign = (imageResourceDirectory && imageResourceDirectory.__assign) || function () {
 		    __assign = Object.assign || function(t) {
 		        for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -34830,13 +34830,13 @@ function requireImageResourceDirectory () {
 		    };
 		    return __assign.apply(this, arguments);
 		};
-		Object.defineProperty(exports$1, "__esModule", { value: true });
-		exports$1.RT_RESOURCE_TYPES = exports$1.ImageResourceDirectory = exports$1.IMAGE_RESOURCE_DIRECTORY = void 0;
+		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.RT_RESOURCE_TYPES = exports.ImageResourceDirectory = exports.IMAGE_RESOURCE_DIRECTORY = void 0;
 		var image_resource_directory_entry_1 = requireImageResourceDirectoryEntry();
 		function IMAGE_RESOURCE_DIRECTORY(values) {
 		    return __assign({ dwCharacteristics: 0x00000000, dwTimeDateStamp: 0x00000000, wMajorVersion: 0x0000, wMinorVersion: 0x0000, wNumberOfNamedEntries: 0x0000, wNumberOfIdEntries: 0x0000 }, values);
 		}
-		exports$1.IMAGE_RESOURCE_DIRECTORY = IMAGE_RESOURCE_DIRECTORY;
+		exports.IMAGE_RESOURCE_DIRECTORY = IMAGE_RESOURCE_DIRECTORY;
 		var ImageResourceDirectory = /** @class */ (function () {
 		    function ImageResourceDirectory(values) {
 		        this.struct = IMAGE_RESOURCE_DIRECTORY(values);
@@ -34888,7 +34888,7 @@ function requireImageResourceDirectory () {
 		    };
 		    return ImageResourceDirectory;
 		}());
-		exports$1.ImageResourceDirectory = ImageResourceDirectory;
+		exports.ImageResourceDirectory = ImageResourceDirectory;
 		(function (RT_RESOURCE_TYPES) {
 		    /** Hardware-dependent cursor resource. */
 		    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_CURSOR"] = 1] = "RT_CURSOR";
@@ -34934,7 +34934,7 @@ function requireImageResourceDirectory () {
 		    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_HTML"] = 23] = "RT_HTML";
 		    /** Side-by-Side Assembly Manifest. */
 		    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_MANIFEST"] = 24] = "RT_MANIFEST";
-		})(exports$1.RT_RESOURCE_TYPES || (exports$1.RT_RESOURCE_TYPES = {}));
+		})(exports.RT_RESOURCE_TYPES || (exports.RT_RESOURCE_TYPES = {}));
 	} (imageResourceDirectory));
 	return imageResourceDirectory;
 }
@@ -34946,7 +34946,7 @@ var hasRequiredImageSectionHeader;
 function requireImageSectionHeader () {
 	if (hasRequiredImageSectionHeader) return imageSectionHeader;
 	hasRequiredImageSectionHeader = 1;
-	(function (exports$1) {
+	(function (exports) {
 		var __assign = (imageSectionHeader && imageSectionHeader.__assign) || function () {
 		    __assign = Object.assign || function(t) {
 		        for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -34958,9 +34958,9 @@ function requireImageSectionHeader () {
 		    };
 		    return __assign.apply(this, arguments);
 		};
-		Object.defineProperty(exports$1, "__esModule", { value: true });
-		exports$1.ImageSectionHeader = exports$1.IMAGE_SECTION_HEADER = exports$1.SectionHeaderCharacteristicsLookup = void 0;
-		exports$1.SectionHeaderCharacteristicsLookup = {
+		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.ImageSectionHeader = exports.IMAGE_SECTION_HEADER = exports.SectionHeaderCharacteristicsLookup = void 0;
+		exports.SectionHeaderCharacteristicsLookup = {
 		    0x00000020: "This section contains code. Usually set in conjunction with the executable flag (0x80000000).",
 		    0x00000040: "This section contains initialized data. Almost all sections except executable and the .bss section have this flag set.",
 		    0x00000080: "This section contains uninitialized data. (for example, the .bss section).",
@@ -34983,7 +34983,7 @@ function requireImageSectionHeader () {
 		function IMAGE_SECTION_HEADER(values) {
 		    return __assign({ szName: '', dwPhysicalAddressUnionVirtualSize: 0x00000000, dwVirtualAddress: 0x00000000, dwSizeOfRawData: 0x00000000, dwPointerToRawData: 0x00000000, dwPointerToRelocations: 0x00000000, dwPointerToLineNumbers: 0x00000000, wNumberOfRelocations: 0x0000, wNumberOfLineNumbers: 0x0000, dwCharacteristics: 0x00000000 }, values);
 		}
-		exports$1.IMAGE_SECTION_HEADER = IMAGE_SECTION_HEADER;
+		exports.IMAGE_SECTION_HEADER = IMAGE_SECTION_HEADER;
 		var ImageSectionHeader = /** @class */ (function () {
 		    function ImageSectionHeader(values) {
 		        this.struct = IMAGE_SECTION_HEADER(values);
@@ -35014,9 +35014,9 @@ function requireImageSectionHeader () {
 		    };
 		    ImageSectionHeader.prototype.getCharacteristics = function () {
 		        var meaning = [];
-		        for (var key in exports$1.SectionHeaderCharacteristicsLookup) {
+		        for (var key in exports.SectionHeaderCharacteristicsLookup) {
 		            if ((this.struct.dwCharacteristics & parseInt(key)) !== 0) {
-		                meaning.push("(0x".concat(parseInt(key).toString(16).padStart(8, '0'), ") ").concat(exports$1.SectionHeaderCharacteristicsLookup[key]));
+		                meaning.push("(0x".concat(parseInt(key).toString(16).padStart(8, '0'), ") ").concat(exports.SectionHeaderCharacteristicsLookup[key]));
 		            }
 		        }
 		        return { value: this.struct.dwCharacteristics.toString(16).padStart(8, "0"), meaning: meaning };
@@ -35039,7 +35039,7 @@ function requireImageSectionHeader () {
 		    };
 		    return ImageSectionHeader;
 		}());
-		exports$1.ImageSectionHeader = ImageSectionHeader; 
+		exports.ImageSectionHeader = ImageSectionHeader; 
 	} (imageSectionHeader));
 	return imageSectionHeader;
 }
@@ -35169,9 +35169,9 @@ var hasRequiredFlags;
 function requireFlags () {
 	if (hasRequiredFlags) return flags;
 	hasRequiredFlags = 1;
-	(function (exports$1) {
-		Object.defineProperty(exports$1, "__esModule", { value: true });
-		exports$1.Flags = void 0;
+	(function (exports) {
+		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.Flags = void 0;
 		(function (Flags) {
 		    (function (VFT) {
 		        /** The file contains an application. */
@@ -35354,7 +35354,7 @@ function requireFlags () {
 		        }
 		    }
 		    Flags.parseFileSubtype = parseFileSubtype;
-		})(exports$1.Flags || (exports$1.Flags = {})); 
+		})(exports.Flags || (exports.Flags = {})); 
 	} (flags));
 	return flags;
 }
@@ -35890,7 +35890,7 @@ var hasRequiredStructures;
 function requireStructures () {
 	if (hasRequiredStructures) return structures;
 	hasRequiredStructures = 1;
-	(function (exports$1) {
+	(function (exports) {
 		var __createBinding = (structures && structures.__createBinding) || (Object.create ? (function(o, m, k, k2) {
 		    if (k2 === undefined) k2 = k;
 		    var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -35902,35 +35902,35 @@ function requireStructures () {
 		    if (k2 === undefined) k2 = k;
 		    o[k2] = m[k];
 		}));
-		var __exportStar = (structures && structures.__exportStar) || function(m, exports$1) {
-		    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports$1, p)) __createBinding(exports$1, m, p);
+		var __exportStar = (structures && structures.__exportStar) || function(m, exports) {
+		    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 		};
-		Object.defineProperty(exports$1, "__esModule", { value: true });
-		__exportStar(requireGroupIconDir(), exports$1);
-		__exportStar(requireGroupIconDirEntry(), exports$1);
-		__exportStar(requireIcoIcon(), exports$1);
-		__exportStar(requireImageDataDirectoryEntry(), exports$1);
-		__exportStar(requireImageDataDirectoryTable(), exports$1);
-		__exportStar(requireImageDos(), exports$1);
-		__exportStar(requireImageDosHeader(), exports$1);
-		__exportStar(requireImageFileHeader(), exports$1);
-		__exportStar(requireImageImportDirectoryTable(), exports$1);
-		__exportStar(requireImageImportDirectoryTableEntry(), exports$1);
-		__exportStar(requireImageImportLookupTable(), exports$1);
-		__exportStar(requireImageOptionalHeader(), exports$1);
-		__exportStar(requireImageResourceDirectoryDataEntry(), exports$1);
-		__exportStar(requireImageResourceDirectory(), exports$1);
-		__exportStar(requireImageResourceDirectoryEntry(), exports$1);
-		__exportStar(requireImageSectionHeader(), exports$1);
-		__exportStar(requireStringTable(), exports$1);
-		__exportStar(requireStringTableEntry(), exports$1);
-		__exportStar(requireVsFixedfileinfo(), exports$1);
-		__exportStar(requireVsString(), exports$1);
-		__exportStar(requireVsStringfileinfo(), exports$1);
-		__exportStar(requireVsStringtable(), exports$1);
-		__exportStar(requireVsVar(), exports$1);
-		__exportStar(requireVsVarfileinfo(), exports$1);
-		__exportStar(requireVsVersioninfo(), exports$1); 
+		Object.defineProperty(exports, "__esModule", { value: true });
+		__exportStar(requireGroupIconDir(), exports);
+		__exportStar(requireGroupIconDirEntry(), exports);
+		__exportStar(requireIcoIcon(), exports);
+		__exportStar(requireImageDataDirectoryEntry(), exports);
+		__exportStar(requireImageDataDirectoryTable(), exports);
+		__exportStar(requireImageDos(), exports);
+		__exportStar(requireImageDosHeader(), exports);
+		__exportStar(requireImageFileHeader(), exports);
+		__exportStar(requireImageImportDirectoryTable(), exports);
+		__exportStar(requireImageImportDirectoryTableEntry(), exports);
+		__exportStar(requireImageImportLookupTable(), exports);
+		__exportStar(requireImageOptionalHeader(), exports);
+		__exportStar(requireImageResourceDirectoryDataEntry(), exports);
+		__exportStar(requireImageResourceDirectory(), exports);
+		__exportStar(requireImageResourceDirectoryEntry(), exports);
+		__exportStar(requireImageSectionHeader(), exports);
+		__exportStar(requireStringTable(), exports);
+		__exportStar(requireStringTableEntry(), exports);
+		__exportStar(requireVsFixedfileinfo(), exports);
+		__exportStar(requireVsString(), exports);
+		__exportStar(requireVsStringfileinfo(), exports);
+		__exportStar(requireVsStringtable(), exports);
+		__exportStar(requireVsVar(), exports);
+		__exportStar(requireVsVarfileinfo(), exports);
+		__exportStar(requireVsVersioninfo(), exports); 
 	} (structures));
 	return structures;
 }
@@ -36128,9 +36128,9 @@ var hasRequiredLanguages;
 function requireLanguages () {
 	if (hasRequiredLanguages) return languages;
 	hasRequiredLanguages = 1;
-	(function (exports$1) {
-		Object.defineProperty(exports$1, "__esModule", { value: true });
-		exports$1.LanguagePack = exports$1.LanguageId = void 0;
+	(function (exports) {
+		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.LanguagePack = exports.LanguageId = void 0;
 		/**
 		 * Enumerated language identifiers
 		 *
@@ -36230,7 +36230,7 @@ function requireLanguages () {
 		    LanguageId[LanguageId["uk_UA"] = 1058] = "uk_UA";
 		    /** 0x042A / 1066 */
 		    LanguageId[LanguageId["vi_VN"] = 1066] = "vi_VN";
-		})(LanguageId = exports$1.LanguageId || (exports$1.LanguageId = {}));
+		})(LanguageId = exports.LanguageId || (exports.LanguageId = {}));
 		/**
 		 * Language Identifier information
 		 */
@@ -36350,7 +36350,7 @@ function requireLanguages () {
 		    LanguagePack.vi_VN = new LanguagePack(LanguageId.vi_VN, 'Vietnamese', 'vi-VN', false);
 		    return LanguagePack;
 		}());
-		exports$1.LanguagePack = LanguagePack; 
+		exports.LanguagePack = LanguagePack; 
 	} (languages));
 	return languages;
 }
@@ -37772,16 +37772,16 @@ var hasRequiredLanguageUtils;
 function requireLanguageUtils () {
 	if (hasRequiredLanguageUtils) return languageUtils;
 	hasRequiredLanguageUtils = 1;
-	(function (exports$1) {
-		Object.defineProperty(exports$1, "__esModule", { value: true });
-		exports$1.LanguageUtils = void 0;
+	(function (exports) {
+		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.LanguageUtils = void 0;
 		var languages_1 = requireLanguages();
 		(function (LanguageUtils) {
 		    function languageIdLookup(languageId) {
 		        return languages_1.LanguagePack.valueOf(languageId);
 		    }
 		    LanguageUtils.languageIdLookup = languageIdLookup;
-		})(exports$1.LanguageUtils || (exports$1.LanguageUtils = {})); 
+		})(exports.LanguageUtils || (exports.LanguageUtils = {})); 
 	} (languageUtils));
 	return languageUtils;
 }
@@ -37791,13 +37791,13 @@ var hasRequiredLib$1;
 function requireLib$1 () {
 	if (hasRequiredLib$1) return lib$1;
 	hasRequiredLib$1 = 1;
-	(function (exports$1) {
-		Object.defineProperty(exports$1, "__esModule", { value: true });
-		exports$1.LanguageUtils = exports$1.PeFileParser = void 0;
+	(function (exports) {
+		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.LanguageUtils = exports.PeFileParser = void 0;
 		var pe_file_parser_1 = requirePeFileParser();
-		Object.defineProperty(exports$1, "PeFileParser", { enumerable: true, get: function () { return pe_file_parser_1.PeFileParser; } });
+		Object.defineProperty(exports, "PeFileParser", { enumerable: true, get: function () { return pe_file_parser_1.PeFileParser; } });
 		var language_utils_1 = requireLanguageUtils();
-		Object.defineProperty(exports$1, "LanguageUtils", { enumerable: true, get: function () { return language_utils_1.LanguageUtils; } }); 
+		Object.defineProperty(exports, "LanguageUtils", { enumerable: true, get: function () { return language_utils_1.LanguageUtils; } }); 
 	} (lib$1));
 	return lib$1;
 }
