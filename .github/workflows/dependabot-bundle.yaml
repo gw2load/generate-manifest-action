@@ -10,10 +10,10 @@ jobs:
       github.event.pull_request.user.login == 'dependabot[bot]' &&
       github.event.pull_request.commits == 1
     steps:
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/create-github-app-token@v3.3.0
         id: generate-token
         with:
-          app-id: ${{ secrets.GW2LOAD_BOT_APP_ID }}
+          client-id: ${{ secrets.GW2LOAD_BOT_CLIENT_ID }}
           private-key: ${{ secrets.GW2LOAD_BOT_APP_PRIVATE_KEY }}
 
       - name: Checkout
@@ -24,7 +24,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: .node-version
           cache: npm
